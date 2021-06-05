@@ -23,12 +23,14 @@
     5. 锁类型（公平 非公平 重入  悲观 乐观 共享 独享）  
     
       
->4. redis    
+>4. redis（特点）    
     1. 数据类型  
     2. 数据结构  
     3. AOF RDB  
     4. 雪崩 击穿 穿透  
-    5. 主从以及集群  
+    5. 主从以及集群    
+    6. ![Philadelphia's Magic Gardens. This place was so cool!](/studyforbat/pic/redis.png "Philadelphia's Magic Gardens")
+
       
   
 >5. Map  
