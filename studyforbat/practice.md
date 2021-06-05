@@ -29,7 +29,8 @@
     3. AOF RDB  
     4. 雪崩 击穿 穿透  
     5. 主从以及集群    
-    6. ![Philadelphia's Magic Gardens. This place was so cool!](/studyforbat/pic/redis.png "Philadelphia's Magic Gardens")
+    6. redis为什么快   
+    ![Philadelphia's Magic Gardens. This place was so cool!](/studyforbat/pic/redis.png "Philadelphia's Magic Gardens")
 
       
   
