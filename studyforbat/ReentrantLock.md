@@ -31,7 +31,7 @@
 
 ​          2. tryAquire由FairSync实现
 
-```
+```java
 protected final boolean tryAcquire(int acquires) {
 	//当前线程
     final Thread current = Thread.currentThread();
@@ -65,7 +65,7 @@ protected final boolean tryAcquire(int acquires) {
 
      * addWaiter(Node.EXCLUSIVE)
 
-       ```
+       ```java
        private Node addWaiter(Node mode) {
            Node node = new Node(Thread.currentThread(), mode);
            // Try the fast path of enq; backup to full enq on failure
@@ -102,19 +102,25 @@ protected final boolean tryAcquire(int acquires) {
                    }
                }
        }
-       //acquireQueued(final Node node, int arg)执行逻辑;
+       //acquireQueued(final Node node, int arg)执行逻辑（即真正入队逻辑）;
            final boolean acquireQueued(final Node node, int arg) {
                boolean failed = true;
                try {
                    boolean interrupted = false;
                    for (;;) {
                        final Node p = node.predecessor();
+                       //如果前一个节点为head则尝试获取锁
                        if (p == head && tryAcquire(arg)) {
+                       //获取成功将当前节点设置为头结点（pred以及thread为null）
                            setHead(node);
+                           //原头结点从链表中剔除
                            p.next = null; // help GC
                            failed = false;
+                           //返回
                            return interrupted;
                        }
+                       //如果当前节点不是头结点或者获取锁失败
+                       //第一次返回false不阻塞：如果节点成为队列中第一个节点则会再次尝试获取锁
                        if (shouldParkAfterFailedAcquire(p, node) &&
                            parkAndCheckInterrupt())
                            interrupted = true;
@@ -124,4 +130,24 @@ protected final boolean tryAcquire(int acquires) {
                        cancelAcquire(node);
                }
            }
+           //执行shouldParkAfterFailedAcquire(p, node)
+           //p为当前节点的前驱结点，node当前节点
+           private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
+               int ws = pred.waitStatus;
+               //获取前驱结点的waitStatus，如果为-1返回true直接阻塞
+               if (ws == Node.SIGNAL)
+                   return true;
+               if (ws > 0) {
+                   do {
+                       node.prev = pred = pred.prev;
+                   } while (pred.waitStatus > 0);
+                   pred.next = node;
+               } else {
+               //初始化时waitStatus为0，将其设置为-1
+                   compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
+               }
+               //返回false会再次进入此方法，则返回true进行阻塞
+               return false;
+           }
+           
        ```
