@@ -20,7 +20,7 @@
 
    ​    1. lock() --> acquire(1)(该方法为AQS内部方法) 尝试获取锁  
 
-```java
+``` java
     public final void acquire(int arg) {
         //获取锁失败并且入队成功则中断当前线程
         if (!tryAcquire(arg) &&
@@ -31,41 +31,40 @@
 
 ​          2. tryAquire由FairSync实现
 
-```java
-protected final boolean tryAcquire(int acquires) {
-	//当前线程
-    final Thread current = Thread.currentThread();
-    //获取同步器状态，如果为0说明锁还未被其他线程持有
-    int c = getState();
-    if (c == 0) {
-    //hasQueuedPredecessors:如果同步队列为空或者队列第一个待唤醒的线程为当前线程，返回false
-    //compareAndSetState:将同步器状态设置为1（unsafe的cas，底层为汇编原子指令cmpchg），
-    //setExclusiveOwnerThread：将持有锁的线程设置为的当前线程，返回true（返回true则上层方法不进入中断逻辑） 
-        if (!hasQueuedPredecessors() &&
-            compareAndSetState(0, acquires)) {
-            setExclusiveOwnerThread(current);
-            return true;
-        }
-    }
-    //如果锁被持有，则判断持有锁的线程是否为当前线程
-    else if (current == getExclusiveOwnerThread()) {
-    	//持有锁的线程为当前线程,则将status加1
-    	//此处逻辑执行时，为获得所得线程，所以状态更新不用CAS
-        int nextc = c + acquires;
-        if (nextc < 0)
-            throw new Error("Maximum lock count exceeded");
-        setState(nextc);
-        return true;
-    }
-    return false;
-}
-```
+   ``` java
+      protected final boolean tryAcquire(int acquires) {
+          //当前线程
+          final Thread current = Thread.currentThread();
+          //获取同步器状态，如果为0说明锁还未被其他线程持有
+          int c = getState();
+          if (c == 0) {
+          //hasQueuedPredecessors:如果同步队列为空或者队列第一个待唤醒的线程为当前线程，返回false
+          //compareAndSetState:将同步器状态设置为1（unsafe的cas，底层为汇编原子指令cmpchg），
+          //setExclusiveOwnerThread：将持有锁的线程设置为的当前线程，返回true（返回true则上层方法不进入中断逻辑） 
+              if (!hasQueuedPredecessors() &&
+                  compareAndSetState(0, acquires)) {
+                  setExclusiveOwnerThread(current);
+                  return true;
+              }
+          }
+          //如果锁被持有，则判断持有锁的线程是否为当前线程
+          else if (current == getExclusiveOwnerThread()) {
+              //持有锁的线程为当前线程,则将status加1
+              //此处逻辑执行时，为获得所得线程，所以状态更新不用CAS
+              int nextc = c + acquires;
+              if (nextc < 0)
+                  throw new Error("Maximum lock count exceeded");
+              setState(nextc);
+              return true;
+          }
+          return false;
+      }
+   ```
 
   3. 获取锁失败时acquire方法逻辑中，执行acquireQueued(addWaiter(Node.EXCLUSIVE), arg)) 入队逻辑
 
-     * addWaiter(Node.EXCLUSIVE)
-
-       ```java
+  * addWaiter(Node.EXCLUSIVE)
+  ``` java
        private Node addWaiter(Node mode) {
            Node node = new Node(Thread.currentThread(), mode);
            // Try the fast path of enq; backup to full enq on failure

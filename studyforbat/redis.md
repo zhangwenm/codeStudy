@@ -1,0 +1,41 @@
+## Redis
+
+#### redis数据结构
+![](C:\appstore\jdproject\codeStudy\studyforbat\pic\mybatis架构.png)
+- 将全局配置文件解析成Configration对象（只会加载一次，重复加载抛异常），解析全局配置文件的内容（property、setting、插件、  
+类型处理器（会维护默认的）、mapper（指定包、指定路径等方式进行配置）等）。
+  - mapper解析：namespace、缓存、resultmap、parameter、sql片段等，sql片段封装到mappersatatement的sqlsorce。二级缓存由  
+  多个缓存实现类装饰而成，通过责任链调用方式实现增强（装饰器：动态扩展）。装饰器  
+  更注重增强，代理类更注重隐藏被代理对象
+    - 解析sql，如果是查询不刷新缓存，增删改默认执行后刷新缓存 
+    - sql被解析成一个个sqlnode，封装成责任链。调用的时候利用责任链的模式调用，将每一个sqlnode解析方式追加到sql变量中
+    - 使用处理器对参数、返回结果映射等进行参数解析
+- 然后创建SqlSessionFactory（简单工厂和构造器模式），然后获取到sqlsession
+- sqlsession调用执行器（默认使用SimpleExecutor）进行crud操作  
+  - 如果开启了缓存，会将SimpleExecutor进行缓存执行器的装饰
+- Executor执行增删查改的时候，如果使用了缓存，会先从二级缓存中取即调用query（此方法利用责任链的模式调用，将每一  
+个sqlnode解析方式追加到sql变量中），取不到调用CachingExecutor的代理SimpleExecutor，SimpleExecutor  
+代理没有实现query，又会调用BseExecutor，调用具体的实现获取结果。生成缓存key放入缓存（前提是开启缓存）
+执行完关闭session
+- MyBatis 允许你在已映射语句执行过程中的某一点进行拦截调用。默认情况下，MyBatis 允许使用插件来拦截方法的调用。即
+插件增强。利用动态代理生成插件的代理对象，将代理封装到责任链中，然后对Executor、ParameterHandler、ResultSetHandler、StatementHandler  
+进行增强。
+- 插件增强：动态代理和责任链实现。调用相关组件的时候，会进行插件拦截，进行责任链调用代理对象进行增强
+- sql被解析成一个个sqlnode，然后利用责任链的模式调用，将每一个sqlnode解析方式追加到sql变量中  
+，执行的时候这些解析方式会将sqlnode结成能执行的sql语句
+- 二级缓存：责任链+装饰器模式。由多个缓存实现类通过装饰器模式装饰组成，通过责任链调用方式实现（装饰器：动态扩展）
+
+
+#### mybatis整合spring
+- spring bean的生产过程
+  - 扫描指定报下class文件
+  - 根据class文件生成BeanDefinition
+  - 利用BeanFactory后置处理器修改Bean定义
+  - 根据Bean定义生成Bean实例
+  - 将生成的Bean实例放入容器
+- spring整合mybatis
+   - 定义一个MapperFactoryBean，用来将mybatis的代理对象生成一个Bean
+   - 定义一个MapperSannerRegister，用来生成不同Mapper对象的MapperFactoryBean
+   - 定义一个扫描注解MapperScan，扫描指定路径法下的Mapper文件，用来在启动时将mapper的代理对象注入到容器
+
+
