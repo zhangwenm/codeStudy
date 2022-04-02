@@ -1,41 +1,54 @@
 ## Redis
 
-#### redis数据结构
-![](C:\appstore\jdproject\codeStudy\studyforbat\pic\mybatis架构.png)
-- 将全局配置文件解析成Configration对象（只会加载一次，重复加载抛异常），解析全局配置文件的内容（property、setting、插件、  
-类型处理器（会维护默认的）、mapper（指定包、指定路径等方式进行配置）等）。
-  - mapper解析：namespace、缓存、resultmap、parameter、sql片段等，sql片段封装到mappersatatement的sqlsorce。二级缓存由  
-  多个缓存实现类装饰而成，通过责任链调用方式实现增强（装饰器：动态扩展）。装饰器  
-  更注重增强，代理类更注重隐藏被代理对象
-    - 解析sql，如果是查询不刷新缓存，增删改默认执行后刷新缓存 
-    - sql被解析成一个个sqlnode，封装成责任链。调用的时候利用责任链的模式调用，将每一个sqlnode解析方式追加到sql变量中
-    - 使用处理器对参数、返回结果映射等进行参数解析
-- 然后创建SqlSessionFactory（简单工厂和构造器模式），然后获取到sqlsession
-- sqlsession调用执行器（默认使用SimpleExecutor）进行crud操作  
-  - 如果开启了缓存，会将SimpleExecutor进行缓存执行器的装饰
-- Executor执行增删查改的时候，如果使用了缓存，会先从二级缓存中取即调用query（此方法利用责任链的模式调用，将每一  
-个sqlnode解析方式追加到sql变量中），取不到调用CachingExecutor的代理SimpleExecutor，SimpleExecutor  
-代理没有实现query，又会调用BseExecutor，调用具体的实现获取结果。生成缓存key放入缓存（前提是开启缓存）
-执行完关闭session
-- MyBatis 允许你在已映射语句执行过程中的某一点进行拦截调用。默认情况下，MyBatis 允许使用插件来拦截方法的调用。即
-插件增强。利用动态代理生成插件的代理对象，将代理封装到责任链中，然后对Executor、ParameterHandler、ResultSetHandler、StatementHandler  
-进行增强。
-- 插件增强：动态代理和责任链实现。调用相关组件的时候，会进行插件拦截，进行责任链调用代理对象进行增强
-- sql被解析成一个个sqlnode，然后利用责任链的模式调用，将每一个sqlnode解析方式追加到sql变量中  
-，执行的时候这些解析方式会将sqlnode结成能执行的sql语句
-- 二级缓存：责任链+装饰器模式。由多个缓存实现类通过装饰器模式装饰组成，通过责任链调用方式实现（装饰器：动态扩展）
+#### 使用场景
+- string 自增（incre）、分布式锁（setnx）、seesion共享、
+- hash  购物车 过期功能不能用在field上，只能用在key上。集群规模不适合使用，会造成数据倾斜
+- list 栈（lpush+lpop） 队列（lpush+rpop） 阻塞队列（lpush+brpop）
+- set 抽奖用户、点赞、关注模型、电商商品筛选
+- 有序集合 排行榜
+#### 单线程的高性能
+- 基于内存
+- 执行命令单线程，持久化、快照等是多线程
+- I/O多路复用
+#### redis持久化
+- 持久化：RDB
+  - save同步，不消耗内存
+  - bgsave异步（默认）,同时fork子线程利用写时复制技术将bgsave期间客户端的请求数据同时也写进rdb文件
+  - 机器宕机会丢失数据
+- 持久化AOF 
+  - append 将修改命令写进AOF文件（先写入oscache，每隔一段时间fsync写磁盘）
+  - fsync三种策略
+    - 每次有命令追加AOF时就执行一次fsync，非常慢也非常安全
+    - 每秒fsync，只会丢失一秒数据（默认）
+    - 从不fsync，将操作交由操作系统处理。快，但不安全
+- AOF重写（fork子线程）
+  - 文件大小达到设置阈值
+  - 自从上次重写后增长达到设置百分比时
+- 同时开启
+  - 恢复数据时优先使用AOF恢复，数据更全
+- redis4.0 混合持久化
+  - 默认关闭 
+  - AOF重写时，不会单存将内存数据转换为命令写入AOF文件，而是将重写这一刻之前的内存做RDB快照处理，并且RDB快照  
+  内容和增量AOF修改内存数据的命令存在一起，都写入AOF文件，新的文件一开始不叫appendonly.aof，重写完成后文件改名、  
+  覆盖原有AOF文件，完成新旧文件的替换。于是机器重启的时候可以先加载RDB的内容，然后重放增量的AOF日志就可以完全取代  
+  之前的AOF全量文件重放，重启效率提升
+- 备份策略
+  - 定时调度脚本，将AOF或者RDB文件备份到一个目录，保留最近48小时数据
+  - 每天保留当天数据到一个目录，保留最近一个月
+  - 每次复制备份的时候，把太旧的数据删除
+  - 每天晚上将当前机器上的备份复制一份到其他机器或者云盘
+#### 主从与哨兵
+- 单节点内存配置一般小于10g,有局限
 
-
-#### mybatis整合spring
-- spring bean的生产过程
-  - 扫描指定报下class文件
-  - 根据class文件生成BeanDefinition
-  - 利用BeanFactory后置处理器修改Bean定义
-  - 根据Bean定义生成Bean实例
-  - 将生成的Bean实例放入容器
-- spring整合mybatis
-   - 定义一个MapperFactoryBean，用来将mybatis的代理对象生成一个Bean
-   - 定义一个MapperSannerRegister，用来生成不同Mapper对象的MapperFactoryBean
-   - 定义一个扫描注解MapperScan，扫描指定路径法下的Mapper文件，用来在启动时将mapper的代理对象注入到容器
+####数据结构
+- string sds 只扩不减 
+  - 二进制安全
+  - 内存预分配,避免频繁的内存分配
+    - len 现有字符串占用长度
+    - free 空闲长度 当字符串变更长度不够用时，会将字节数组扩增到（len+所缺长度）*2
+    - 当长度达到1M时，每次扩展1M
+  - 兼容C语言函数库（自动添加\0） 
+- 默认16个Db hash桶长度默认4 2倍扩容
+- 先访问0，存在将整个hash桶搬到1，不存在访问1.
 
 
