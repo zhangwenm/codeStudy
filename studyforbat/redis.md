@@ -10,6 +10,19 @@
 - 基于内存
 - 执行命令单线程，持久化、快照等是多线程
 - I/O多路复用
+- Redis 的线程模型：基于Reactor模式开发了自己的网络事件处理器，即文件时间处理器
+![](/studyforbat/pic/filehandler.png)
+  - Redis 内部使用文件事件处理器 file event handler ，这个文件事件处理器是单线程的，所以 Redis 才叫做单线  
+  程的模型。它采用 IO 多路复用机制同时监听多个 socket，将产生事件的 socket 压入内存队列中，事件分派器根据 socket 上的事件类型来选择对应的事件处理器进行处理。
+  - 文件事件处理器的结构包含 4 个部分： 
+    - 多个 socket 
+    - IO 多路复用程序 
+    - 文件事件分派器 
+    - 事件处理器（连接应答处理器、命令请求处理器、命令回复处理器） 
+    - 多个 socket 可能会并发产生不同的操作，每个操作对应不同的文件事件，但是 IO 多路复用程序会监听多个 socket，会将产生事件的 socket  
+    放入队列中排队，事件分派器每次从队列中取出一个 socket，当被监听的socket准备好执行连接应答、读取、写入、关闭等操作时，与操作对应文件事  
+    件就会产生，这事文件时间处理器就会调用之前关联好的事件处理器来处理这些事件。实现了高性能的网络通信模型  
+    socket 的事件类型交给对应的事件处理器进行处理。
 #### redis持久化
 - 持久化：RDB
   - save同步，不消耗内存
@@ -59,7 +72,16 @@
   ![](/studyforbat/pic/multilevel.png)  
 - 哨兵架构
   ![](/studyforbat/pic/sentinel-slave.png)
-- 哨兵节点是特殊的redis服务，不提供读写功能，主要用来监控redis实例节点
+- 哨兵节点是特殊的redis服务，不提供读写功能，主要用来监控redis实例节点（Raft算法选举）
+- 一般情况下sentinel以每10s一次的频率向被监视的主服务器和从服务器发送INFO命令获取信息，当主服务器处于下线状态或者正在对主服务器进行故障转移  
+时，改为每秒一次
+- 对于监视同一主服务器和从服务器的sentinel来说，他们以每两秒一次的频率向被监视服务器的_sentinel_:hello频道发送消息来向其他sentinel宣示自  
+己的存在
+- 每个sentinel也会订阅该频道
+- sentinel只会与主从建立命令连接和订阅连接，sentinel之间只会创建命令连接
+- sentinel以每秒一次的频率向其他所有实例发送PING命令，根据回复情况判断是否主观下线
+- 当sentinel讲一个主服务器视为主观下线时，会向其他sentinel发起询问，询问是否同意主管下线
+- 当收到足够多的主管下线投票后，会将主服务器判断为客观下线，并发起一次真对主服务器的故障转移操作
 - 客户端第一次通过哨兵找到redis主节点，后续直接访问主节点。当主节点发生变化时，哨兵节点会第一时间感知到并通知给客户端（客户端一般实现了  
 订阅功能）
 #### 集群
@@ -90,6 +112,56 @@
   - 替代redis的事务功能
   - 不要lua脚本中出现死循环和耗时的操作，否则会造成redis阻塞
 ####数据结构
+- 数据结构类型
+  - sds（简单动态字符串 ）
+  - 双端链表
+  - 字典
+  - 压缩表
+  - 跳跃表
+  - 整数集合
+- 对象类型 基于以上数据结构创建的对象系统
+  - 字符串对象
+    - 保存的是整数值，并且可以用long类型来表示，底层使用int编码
+      ![](/studyforbat/pic/encoding_int.png)
+    - 保存的字符串，长度大于32，使用raw编码
+      ![](/studyforbat/pic/encoding_raw.png)
+      - redisobject和sdshdr分开存储，需要两次内存分配
+    - 字符串小于等于32，使用embstr编码
+      ![](/studyforbat/pic/encoding_embstr.png)
+      - redisobject和sdshdr在一块连续内存
+      - redis没有为embstr提供修改程序，需要先转换为raw字符串再进行修改
+  - 列表对象
+    ![](/studyforbat/pic/list_ziplist.png)
+    - 压缩表
+      - 保存的字符串，且元素长度都小于64
+      - 元素数量小于512
+    ![](/studyforbat/pic/list_linklist.png)
+    - 双端链表
+      - 不能满足以上条件的都需要使用双端链表
+  - 哈希对象
+    ![](/studyforbat/pic/hash_ziplist.png)
+    - 压缩表
+      - 所有键值对的键和值的字符串长度都小于64
+      - 键值对数量小于512
+    ![](/studyforbat/pic/hash_dt.png)
+    - 字典
+      - 不满足以上条件
+  - 集合对象
+  ![](/studyforbat/pic/hash_dt.png)
+    - intset
+      - 集合对象都是整数值
+      - 元素数量不超过512
+    - hashtable
+  - 有序集合对象
+  ![](/studyforbat/pic/zset_ziplist.png) 
+  ![](/studyforbat/pic/zset_ele1.png)
+    - 压缩列表
+      - 元素数量少于128
+      - 所有元素成员的长度都小于64字节
+    ![](/studyforbat/pic/skiplist.png)
+    -字典和跳跃表 
+      - 字典保存元素和分值的映射
+      - 跳跃表按分值大小保存了集合元素
 - string sds 只扩不减  key过多时会引发rehash
   - 二进制安全
   - 内存预分配,避免频繁的内存分配
@@ -97,6 +169,7 @@
     - free 空闲长度 当字符串变更长度不够用时，会将字节数组扩增到（len+所缺长度）*2
     - 当长度达到1M时，每次扩展1M
   - 兼容C语言函数库（自动添加\0） 
+  - 惰性空间释放：缩短后并不会立即回收，而是将长度先加到free属性上
 - 默认16个Db hash桶长度默认4 2倍扩容
 - 先访问0，存在将整个hash桶搬到1，不存在访问1.
 - bitmap：key offset value 2的32次方-1
@@ -108,7 +181,7 @@
   - 不能对内层key设置过期时间  
   - 当zipliist元素个数查过512
   - 单个元素大小超过64byte
-- set key为null的dict。
+- set value为null的dict。
   - 当数据可用整形表示时，被编码为intset
   - hashtable，以下条件任意满足
     - 元素个数大于设置 
