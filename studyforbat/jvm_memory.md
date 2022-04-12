@@ -127,7 +127,6 @@
     Byte,Short,Integer,Long,Character这5种整型的包装类也只是在对应值小于等于127时才可使用对象池，也即对象不负
     责创建和管理大于127的这些类的对象。因为一般这种比较小的数用到的概率相对较大。
     - ``1 public class Test {
-      2
       3 public static void main(String[] args) {
       4 //5种整形的包装类Byte,Short,Integer,Long,Character的对象，
       5 //在值小于127时可以使用对象池
