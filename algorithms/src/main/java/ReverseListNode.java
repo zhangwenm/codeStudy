@@ -80,9 +80,47 @@ public class ReverseListNode {
         node4.pre = node3;
 
         ListNode demo = reverseNode(node1);
-        System.out.printf(demo.toString());
+        System.out.println(demo.toString());
+        int a= 3;
+        int b= 5;
+        a ^=b;
+        b ^= a;
+        a ^= b;
+        System.out.println("a:"+a);
+        System.out.println("b:"+b);
+
+        int[] arr = new int[]{3,1,2};
+        MySort(arr);
 
 
+    }
+    public static int[] MySort(int[] arr) {
+        quickSort(arr, 0, arr.length - 1);
+        return arr;
+    }
 
+    private  static void quickSort(int[] array, int start, int end) {
+        if (start < end) {
+            int key = array[start];//用待排数组的第一个作为中枢
+            int i = start;
+            for (int j = start + 1; j <= end; j++) {
+                if (key > array[j]) {
+                    swap(array, j, ++i);
+                }
+            }
+            array[start] = array[i];//先挪，然后再把中枢放到指定位置
+            array[i] = key;
+            quickSort(array, start, i - 1);
+            quickSort(array, i + 1, end);
+        }
+    }
+
+    //交换两个数的值
+    public static void swap(int[] A, int i, int j) {
+        if (i != j) {
+            A[i] ^= A[j];
+            A[j] ^= A[i];
+            A[i] ^= A[j];
+        }
     }
 }
