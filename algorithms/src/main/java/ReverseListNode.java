@@ -57,7 +57,21 @@ public class ReverseListNode {
         return pre;
     }
 
-
+    public ListNode reverseSingle(ListNode head){
+        if(head == null || head.next == null){
+            return head;
+        }
+        ListNode pre = head;
+        ListNode cur =head.next;
+        pre.next = null;
+        while(cur!=null){
+            ListNode tmp = cur.next;
+            cur.next = pre;
+            pre = cur;
+            cur = tmp;
+        }
+        return pre;
+    }
 
     public static void main(String[] args) {
         ListNode node1 = new ListNode();
