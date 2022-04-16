@@ -263,7 +263,8 @@
   - 收集器由于没有线程交互的开销，自然可以获得很高的单线程收集效率
   - Serial Old收集器是Serial收集器的老年代版本，它同样是一个单线程收集器。它主要有两大用途：一种用途是在JDK1.5
     以及以前的版本中与Parallel Scavenge收集器搭配使用，另一种用途是作为CMS收集器的后备方案。
-- Parallel Scavenge收集器
+- Parallel Scavenge收集器  Parallel Scavenge收集器及后面提到的G1收集器等都没有使用HotSpot中原本设计的垃圾收集器的分代框架，  
+而选择另外独立实 现。
   - serial的多线程版本
   - Parallel Scavenge收集器关注点是吞吐量（高效率的利用CPU）。CMS等垃圾收集器的关注点更多的是用户线程的停
     顿时间（提高用户体验）。所谓吞吐量就是CPU中用于运行用户代码的时间与CPU总消耗时间的比值。
