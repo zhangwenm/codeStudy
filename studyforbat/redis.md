@@ -50,7 +50,7 @@
   - 文件大小达到设置阈值
   - 自从上次重写后增长达到设置百分比时
   - AOF还可以手动重写，进入redis客户端执行命令bgrewriteaof重写AOF
-- 同时开启 我们很少使用 RDB来恢复内存状态，因为会丢失大量数据。我们通常使用 AOF 日志重
+- 我们很少使用 RDB来恢复内存状态，因为会丢失大量数据。我们通常使用 AOF 日志重
   放，但是重放 AOF 日志性能相对 RDB来说要慢很多，这样在 Redis 实例很大的情况下，启动需要花费很长的时间。
   - 恢复数据时优先使用AOF恢复，数据更全
 - redis4.0 混合持久化
@@ -155,23 +155,24 @@
   - 整数集合
 - 对象类型 基于以上数据结构创建的对象系统
   - 字符串对象
-  - string sds 只扩不减  
-  - 二进制安全
-  - 内存预分配,避免频繁的内存分配
-    - len 现有字符串占用长度
-    - free 空闲长度 当字符串变更长度不够用时，会将字节数组扩增到（len+所缺长度）*2
-    - 当长度达到1M时，每次扩展1M
-  - 兼容C语言函数库（自动添加\0）
-  - 惰性空间释放：缩短后并不会立即回收，而是将长度先加到free属性上
-    - 保存的是整数值，并且可以用long类型来表示，底层使用int编码
-      ![](/studyforbat/pic/encoding_int.png)
-    - 保存的字符串，长度大于32，使用raw编码
-      ![](/studyforbat/pic/encoding_raw.png)
-      - redisobject和sdshdr分开存储，需要两次内存分配
-    - 字符串小于等于32，使用embstr编码
-      ![](/studyforbat/pic/encoding_embstr.png)
-      - redisobject和sdshdr在一块连续内存
-      - redis没有为embstr提供修改程序，需要先转换为raw字符串再进行修改
+    - string sds 只扩不减  
+    - 常数复杂度获取字符串长度
+    - 二进制安全
+    - 内存预分配,避免频繁的内存分配
+      - len 现有字符串占用长度
+      - free 空闲长度 当字符串变更长度不够用时，会将字节数组扩增到（len+所缺长度）*2
+      - 当长度达到1M时，每次扩展1M
+    - 兼容C语言函数库（自动添加\0）
+    - 惰性空间释放：缩短后并不会立即回收，而是将长度先加到free属性上
+      - 保存的是整数值，并且可以用long类型来表示，底层使用int编码
+        ![](/studyforbat/pic/encoding_int.png)
+      - 保存的字符串，长度大于32，使用raw编码
+        ![](/studyforbat/pic/encoding_raw.png)
+        - redisobject和sdshdr分开存储，需要两次内存分配
+      - 字符串小于等于32，使用embstr编码
+        ![](/studyforbat/pic/encoding_embstr.png)
+        - redisobject和sdshdr在一块连续内存
+        - redis没有为embstr提供修改程序，需要先转换为raw字符串再进行修改
   - 列表对象
     ![](/studyforbat/pic/list_ziplist.png)
     - 压缩表 每个节点记录前一节点的长度
@@ -188,6 +189,7 @@
     ![](/studyforbat/pic/hash_dt.png)
     - 字典
       - 不满足以上条件
+      - ![img.png](img.png)
   - 集合对象
   ![](/studyforbat/pic/hash_dt.png)
     - intset
@@ -198,12 +200,13 @@
   ![](/studyforbat/pic/zset_ziplist.png) 
   ![](/studyforbat/pic/zset_ele1.png)
     - 压缩列表
-      - 元素数量少于128
       - 所有元素成员的长度都小于64字节
+      - 元素数量少于128
     ![](/studyforbat/pic/skiplist.png)
     -字典和跳跃表 
       - 字典保存元素和分值的映射
       - 跳跃表按分值大小保存了集合元素
+      - ![img_1.png](img_1.png)
 - 默认16个Db hash桶长度默认4 2倍扩容
 - key过多时会引发rehash
 - 先访问0，存在将整个hash桶搬到1，不存在访问1.
