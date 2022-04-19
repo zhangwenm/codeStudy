@@ -24,12 +24,13 @@
 - 消费者
   - 自动ack
   - 手动ack
-- 消费端限流 prefetch（手动ack）
-- 死信
+- 消费端限流 ：设置prefetch每次拉取条数（手动ack）
+- 成为死信
   - 到期
   - 队列满
   - 消费者拒绝接收，并且不重回回队列
   - 超时未被消费
+- 当消息成为死信后，如果该队列绑定了死信交换机，则消息会被死信交换机重新路由到死信队列
 - TTl+死信队列实现延时队列
 
 - 消费堆积
@@ -107,7 +108,7 @@
 - 消息 默认保留一周
   - 单播 每个消息只能被消费者组中的一个消费者消费
   - 多播 把消费者放到不同的消费者组
-  -offset以消费者组为单位
+  - offset以消费者组为单位
   - topic 逻辑单元
     - partition分区，每个分区对应一个commitlog，message按顺序存储在commitlog中，有一个唯一标识（partition内）
     ，即offset
@@ -127,9 +128,9 @@
 - cotroller作用
   - 当某个分区主副本出现故障时，由它负责选举新的主副本
   - 当检测到某个分区的ISR出现变化时，也由它通知所有的broker更新元数据
-  - 当为某个topic增加分区时，同样也由它负责让心分区为其他节点感知到
+  - 当为某个topic增加分区时，同样也由它负责让新分区为其他节点感知到
 - controller选举机制
-  - 集群启动时会向注册中心常见controller节点，zookeeper能保证只有一个broker能创建成功
+  - 集群启动时会向注册中心创建controller节点，zookeeper能保证只有一个broker能创建成功
   - 创建成功的broker成为controller
   - cotroller出现故障时，同样经过上边的步骤选举出新的controller
 - partition副本的选举机制
@@ -137,7 +138,7 @@
     - 因为第一个是被最先放进ISR的，理论上同步的数据最新
     - 如果设置了ISR副本都挂以后可以从外部选leader，虽然可以提高可用性，但是选出的主副本可能同步的数据不是最新
     - 进入ISR的条件
-      - 副本节点不能产生分区，要保持和zookeeper的绘画以及跟主副本的网络连通
+      - 副本节点不能产生分区，要保持和zookeeper的会话以及跟主副本的网络连通
       - 副本能复制leader副本上的写操作，并且不能落后太多。如果超过设置的时间没有和主副本同步过一次的话，会被移出
       ISR
 - 消费者消费消息的offset机制
@@ -167,7 +168,7 @@
       - 当冲突时，第一个目标优先于第二个目标
 - producer发布消息
   ![](/studyforbat/pic/kafka_rebalance.png)
-  - push方式退给broker，apeend到partion中，顺序写磁盘
+  - push方式推给broker，apeend到partion中，顺序写磁盘
   - partition选择方式
     - 指定partition
     - 未指定partition但制定了key，通过对key的value hash选择partition

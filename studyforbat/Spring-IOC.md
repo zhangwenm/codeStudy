@@ -110,7 +110,7 @@
 - 早期：请求 -> JSP -> JAVA BEAN -> 数据源 jsp同时担任处理器和视图展示
 - 演进：请求 -> serverlet（C）  -> JAVA BEAN（M） -> 数据源，然后处理器将数据返  
 给jsp（V）。视图展示和处理器和视图展示
-![](C:\appstore\jdproject\codeStudy\studyforbat\pic\01-Springmvc执行流程.png)
+![](/studyforbat/pic/01-Springmvc执行流程.png)
 - 拦截器：springmvc容器启动的时候加载进去的
 - spring ioc容器扫描的时候不回加载mvc的bean，mvc的容器是会加载spring的Bean
 

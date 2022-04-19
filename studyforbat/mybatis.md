@@ -1,7 +1,20 @@
 ## Mybatis
 
 #### mybatis 半自动化orm框架，因为更换数据库需要修改配置。全自动：herbernate
-![](C:\appstore\jdproject\codeStudy\studyforbat\pic\mybatis架构.png)
+- Spring启动过程中，大致会经过如下步骤去生成bean
+  - 扫描指定的包路径下的class文件
+  - 根据class信息生成对应的BeanDefinition
+  - 在此处，程序员可以利用某些机制去修改BeanDefinition
+  - 根据BeanDefinition生成bean实例
+  - 把生成的bean实例放入Spring容器中
+
+- 整合mybatis
+  - 定义一个MapperFactoryBean，用来将Mybatis的代理对象生成一个bean对象
+  - 定义一个MapperScannerRegistrar，用来生成不同Mapper对象的FactoryBean
+  - 定义一个@MapperScan，用来在启动Spring时执行MapperScannerRegistrar的逻辑，并指定包路径
+  - 然后扫描该路径下的所有Mapper，生成BeanDefinition，放入Spring容器中
+  - 这样就把Mybatis中的代理对象作为一个bean放入Spring容器中
+  ![](/studyforbat/pic/mybatis架构.png)
 - 将全局配置文件解析成Configration对象（只会加载一次，重复加载抛异常），解析全局配置文件的内容（property、setting、插件、  
 类型处理器（会维护默认的）、mapper（指定包、指定路径等方式进行配置）等）。
   - mapper解析：namespace、缓存、resultmap、parameter、sql片段等，sql片段封装到mappersatatement的sqlsorce。二级缓存由  
