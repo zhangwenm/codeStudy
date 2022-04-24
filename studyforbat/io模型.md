@@ -16,7 +16,7 @@
 - 1.4 nio通过select或者poll来实现，每次遍历所有的channel，有读写事件就进行处理，没有的话继续遍历，1.4之后引入  
 epoll，基于事件响应机制来优化Nio
 - 三大控件
-  - channel buffer缓冲区，底层为数组
+  - channel，buffer缓冲区，底层为数组
   - channel会注册到selector上，由selector根据channel读写事件的发生，交由空闲的线程处理
   - NIO的channel都是即可以读，也可以写
 - selector.open 创建多路复用器 底层为调用操作系统函数epoll_create创建epoll文件描述符

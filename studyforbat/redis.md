@@ -1,11 +1,13 @@
 ## Redis
 
 #### 使用场景
+[使用场景](https://mp.weixin.qq.com/s/u0nP4pV3mlbfsbzuLFkYOg).
 - string 自增（incre）、分布式锁（setnx）、seesion共享、
   - setnx非原子操作，使用set+失效时间
   - 防止释放错锁，value存唯一标识，释放时比较，保证原子性可以用lua脚本实现
   - Redisson 的宗旨是促进使用者对 Redis 的关注分离（Separation of Concern），从而让使用者能够将精力更集中地放在处理业务逻辑上。
   - Redisson 是一个在 Redis 的基础上实现的 Java 驻内存数据网格
+  - [Redisson](https://mp.weixin.qq.com/s/HkLPEURcJGc25shySaZbuA).
 - hash  购物车 过期功能不能用在field上，只能用在key上。集群规模不适合使用，会造成数据倾斜
 - list 栈（lpush+lpop） 队列（lpush+rpop） 阻塞队列（lpush+brpop）
 - set 抽奖用户、点赞、关注模型、电商商品筛选
@@ -268,7 +270,7 @@
   - 主动：由于被动删除无法保证冷数据被及时删除，所以redis会定期删除一批已过期的key
   - 当使用内存超过限制时，会触发主动清理策略
   - 主动清理策略
-    - 针对设置了过期时间的key 
+    - 针对设置了过期时间的key    
       - 在筛选时，针对有过期时间的key，优先删除过期早的key
       - 在设置了过期时间的key中随机删除
       - 使用lru策略：删除最近最少使用。以最近一次访问时间为准

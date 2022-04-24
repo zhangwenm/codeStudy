@@ -1,5 +1,5 @@
 ## ReentrantLock：
-
+[AQS](https://tech.meituan.com/2019/12/05/aqs-theory-and-apply.html).
 1. 内部类Sync继承自AbstractQueuedSynchronizer，AbstractQueuedSynchronizer继承自AbstractOwnableSynchronizer
 
    AOS内部属性exclusiveOwnerThread：独占锁状态下持有锁的线程

@@ -53,6 +53,6 @@
 >
 > 动表中的记录在内存中进行比较，这样显著减少被驱动表磁盘I/O的代价。同时，驱动表中的列并不会全部放入join buffer中，只有  
 >
-> 查询列表中的列和过滤条件中的列才会放入join buffer中
+> 查询列表中的列和符合过滤条件中的列才会放入join buffer中
 
 ![join_buffer!](/studyforbat/pic/join_buffer.png "join_buffer")
