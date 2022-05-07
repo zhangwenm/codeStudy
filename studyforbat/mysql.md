@@ -42,3 +42,17 @@
     InnoDB在执行查询语句SELECT时(非串行隔离级别)，不会加锁。但是update、insert、delete操作会加行
     锁。
     简而言之，就是读锁会阻塞写，但是不会阻塞读。而写锁则会把读和写都阻塞。
+#### 优化
+- 1、MySQL支持两种方式的排序filesort和index，Using index是指MySQL扫描索引本身完成排序。index 效率高，filesort效率低。 
+- 2、order by满足两种情况会使用Using index。 1) order by语句使用索引最左前列。 2) 使用where子句与order by子句条件列组合满足索引最左前列。 
+- 3、尽量在索引列上完成排序，遵循索引建立（索引创建的顺序）时的最左前缀法则。 
+- 4、如果order by的条件不在索引列上，就会产生Using filesort。
+- 5、能用覆盖索引尽量用覆盖索引 
+- 6、group by与order by很类似，其实质是先排序后分组，遵照索引创建顺序的最左前缀法则。  
+对于group by的优化如果不需要排序的可以加上order by null禁止排序。注意，where高于having，能写在where中 的限定条件就不要去having限定了。
+##### Using filesort文件排序原理详解
+- 单路排序会把所有需要查询的字段都放到 sort buffer 中，而双路排序只会把主键 和需要排序的字段放到 sort buffer 中进行排序，然后再通过主键回到原表查询需要的字段。
+  - 单路排序：是一次性取出满足条件行的所有字段，然后在sort buffer中进行排序；用trace工具可 以看到sort_mode信息里显示< sort_key, additional_fields >  
+  或者< sort_key, packed_additional_fields >
+  - 双路排序（又叫回表排序模式）：是首先根据相应的条件取出相应的排序字段和可以直接定位行 数据的行 ID，然后在 sort buffer 中进行排序，排序完后需要再次取回其它  
+  需要的字段；用trace工具 可以看到sort_mode信息里显示< sort_key, rowid >

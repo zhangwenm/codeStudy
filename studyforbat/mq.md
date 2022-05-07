@@ -174,7 +174,7 @@
     - 未指定partition但制定了key，通过对key的value hash选择partition
     - 都未指定，轮询
 - 消息写入流程
-  ![](/studyforbat/pic/kafka_produce.png)
+  ![](/studyforbat/pic/kafka_pro duce.png)
   - producer找到partition的leader发送消息
   - leader写入本地log
   - follower从leader拉取消息写入本地log发送ack

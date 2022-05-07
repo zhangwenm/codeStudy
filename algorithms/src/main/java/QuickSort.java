@@ -1,3 +1,5 @@
+import java.util.Random;
+
 /**
  * @program: codeStudy
  * @description: TODO
@@ -34,11 +36,23 @@ public class QuickSort {
         arr[left] = k;
         return left;
     }
-
+    Random random = new Random();
+    public int randomeNum(int[] arr,int left ,int right){
+        int num = random.nextInt(right-left+1)+right;
+        swap(  arr,  num,  left);
+        return partion(arr,left,right);
+    }
+    public void swap(int[] arr,int left,int right){
+        if(left!=right){
+            arr[left] ^= arr[right];
+            arr[right] ^= arr[left];
+            arr[left] ^= arr[right];
+        }
+    }
     public void quickSort(int[] arr,int start,int end ){
         if(start< end){
 
-            int mid = partion(arr,start,end);
+            int mid = randomeNum(arr,start,end);
             quickSort(arr,start,mid-1);
             quickSort(arr,mid+1,end);
         }

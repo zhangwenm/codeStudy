@@ -1,9 +1,5 @@
-import org.apache.logging.log4j.core.util.FileUtils;
-
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @program: codeStudy
@@ -11,7 +7,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author: zwm
  * @create: 2022-04-12 15:05
  **/
-public class SumTwoNum {
+public class SkipFloor {
 
     public int[] twoSum (int[] numbers, int target) {
         // write code here
