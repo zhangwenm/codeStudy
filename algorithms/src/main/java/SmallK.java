@@ -5,7 +5,7 @@ import java.util.PriorityQueue;
 
 /**
  * @program: 最小的K个数
- * @description: TODO
+ * @description: https://www.nowcoder.com/practice/6a296eb82cf844ca8539b57c23e6e9bf?tpId=117&tqId=37765&rp=1&ru=/exam/oj&qru=/exam/oj&sourceUrl=%2Fexam%2Foj%3Ftab%3D%25E7%25AE%2597%25E6%25B3%2595%25E7%25AF%2587%26topicId%3D117&difficulty=undefined&judgeStatus=undefined&tags=&title=
  * @author: zwm
  * @create: 2022-04-12 15:05
  **/
@@ -39,7 +39,7 @@ public class SmallK {
     /*
     * 第k大
     *
-    *
+    *https://www.nowcoder.com/practice/e016ad9b7f0b45048c58a9f27ba618bf?tpId=117&tqId=37791&rp=1&ru=/exam/oj&qru=/exam/oj&sourceUrl=%2Fexam%2Foj%3Ftab%3D%25E7%25AE%2597%25E6%25B3%2595%25E7%25AF%2587%26topicId%3D117&difficulty=undefined&judgeStatus=undefined&tags=&title=
     * */
     public int findKth(int[] a, int n, int K) {
         return  quickSort(a,0,n-1,K);

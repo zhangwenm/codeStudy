@@ -485,6 +485,7 @@
     - Safe Region 是指在一段代码片段中，引用关系不会发生变化。在这个区域内的任意地方开始 GC 都是安全的。
 #### 调优
 - jmap ‐dump:format=b,file=eureka.hprof 14660 dump文件 
+  - dump文件可视化的观察生成对象的类属性，对象数量占比进而定位到相应代码逻辑
 - 用jstack加进程id查找死锁，
 - jstack找出占用cpu最高的线程堆栈信息
   - 1，使用命令top -p <pid> ，显示你的java进程的内存情况，pid是你的java进程号，比如19663
@@ -524,3 +525,7 @@
 - 最快速度分析完这些我们推测的原因以及优化后，我们发现young gc和full gc依然很频繁了，而且看到有大量的对象频繁的被挪动到老年
   代，这种情况我们可以借助jmap命令大概看下是什么对象
   ![](/studyforbat/pic/jmap.png)
+- full gc比young gc更频繁
+  - 元空间不够（加载类信息时，元空间不够频繁进行full gc）
+  - 空间分配担保导致young gc之前进行full gc，而进行young gc时老年代剩余空间不够又会进行full gc
+  - 根据jmap日志观察程序创建大对象

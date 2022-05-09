@@ -6,12 +6,105 @@
   - 代码繁杂
   - 不支持集群
   - 索引和应用在同一机器
-  - ES 配合三方分词器（最粗粒度，最细粒度）
-    - INDEX(database数据库)，相似文档的集合
-    - mapping（文档结构）
+- ES 配合三方分词器（最粗粒度，最细粒度）
+  - 描述
+    - 一个分布式的实时文档存储，每个字段可以被索引与搜索。
+    - 一个分布式实时分析搜索引擎。
+    - 能胜任上百个服务节点的扩展，并支持 PB 级别的结构化或者非结构化数据。
+  - INDEX(database数据库)，相似文档的集合
+    - 滚动索引
+      - 别名滚动指向新创建的索引
+      - 创建一个名字为logs-0000001 、别名为logs_write 的索引：
+        - ```PUT /logs-000001
+          {
+          "aliases": {
+          "logs_write": {}
+          }
+          }
+        - 添加1000个文档到索引logs-000001，然后设置别名滚动的条件
+        - ```POST /logs_write/_rollover
+          {
+          "conditions": {
+          "max_age":   "7d",
+          "max_docs":  1000,
+          "max_size":  "5gb"
+          }
+          }
+        - 如果别名logs_write指向的索引是7天前（含）创建的或索引的文档数>=1000或索引的大小>= 5gb，  
+        则会创建一个新索引 logs-000002，并把别名logs_writer指向新创建的logs-000002索引
+    - 索引拆分
+      - 先设置索引只读：
+      - 然后拆分
+      - 只有在创建时指定了index.number_of_routing_shards 的索引才可以进行拆分，ES7开始将不再有这个限制。
+    - mapping（文档结构）支持搜索的字符串字段
     - type（表）
     - Documnet（行）
     - field字段
+      - 字段类型 datatypes
+        - Core Datatypes     核心类型
+        - ```string    
+          text and keyword  
+          Numeric datatypes  
+          long, integer, short, byte, double, float, half_float, scaled_float  
+          Date datatype    
+          date  
+          Boolean datatype  
+          boolean  
+          Binary datatype  
+          binary  
+          Range datatypes       范围  
+          integer_range, float_range, long_range, double_range, date_range
+        - 3.2 Complex datatypes 复合类型
+        - ``
+          Array datatype
+          数组就是多值，不需要专门的类型
+          Object datatype
+          object ：表示值为一个JSON 对象
+          Nested datatype
+          nested：for arrays of JSON objects（表示值为JSON对象数组 ）``
+        - Geo datatypes  地理数据类型
+        - ```Geo-point datatype
+          geo_point：for lat/lon points  （经纬坐标点）
+          Geo-Shape datatype
+          geo_shape：for complex shapes like polygons （形状表示）
+        - Specialised datatypes 特别的类型
+        - ```IP datatype
+          ip：for IPv4 and IPv6 addresses
+          Completion datatype
+          completion：to provide auto-complete suggestions
+          Token count datatype
+          token_count：to count the number of tokens in a string
+          mapper-murmur3
+          murmur3：to compute hashes of values at index-time and store them in the index
+          Percolator type
+          Accepts queries from the query-dsl
+          join datatype
+          Defines parent/child relation for documents within the same index
+        - 字段定义属性介绍
+          - ```analyzer   指定分词器
+               normalizer   指定标准化器
+               boost        指定权重值
+               coerce      强制类型转换
+               copy_to    值复制给另一字段
+               doc_values  是否存储docValues
+               dynamic
+               enabled    字段是否可用
+               fielddata
+               eager_global_ordinals
+               format    指定时间值的格式
+               ignore_above
+               ignore_malformed
+               index_options
+               index
+               fields
+               norms
+               null_value
+               position_increment_gap
+               properties
+               search_analyzer
+               similarity
+               store
+               term_vector
 - 倒排索引
   - 存储的的时候进行关键词切分，建立关键词与文档的对应关系表，称之为倒排索引（反向索引）
   - 分词（位置，出现次数）
@@ -28,8 +121,9 @@
   - index：属性用来配置是否开启分词建立对应关系
   - store：是否存储文档数据
   - String 包含text keyword
-    - text会进行分词，不能排序和聚合
-    - keyword不会进分词
+    - text会进行分词，不能排序和聚合（支持搜索的字符串设置为text字段进行分词器属性设置，支持模糊匹配）
+    - keyword不会进分词用于索引结构化内容的字段，例如电子邮件地址，主机名，状态代码，邮政编码或标签。  
+    它们通常用于过滤，排序，和聚合。Keyword 字段只能按其确切值进行搜索。
   - 修改静态映射：命令行将原索引数据导入新索引，重命名新索引
 - 分页
   - from + size 浅分页
@@ -71,6 +165,7 @@
     - 主分片和从分片不在同一节点
     - 分片允许水平分割/扩展内容容量
     - 允许在分片上做分布式、并行的操作，提高吞吐率、
+    - 将数据分片是为了提高可处理数据的容量和易于进行水平扩展，为分片做副本是为了提高集群的稳定性和提高并发量。
     - 不能改变分片数量
   - 副本
     - 容灾
@@ -95,11 +190,40 @@
     ![](/studyforbat/pic/es_read.png)
 - es准时数据库
   - 当数据写入到es分片时，会先写入到内存中，然后通过内存的buffer生成一个segment并刷到文件系统缓存中  
-  之后文件才能被检索，默认每秒刷一次
-  - 写入内存的同时，也会记录translog日志，在refresh期间出现异常会根据translog文件进行恢复
-  - 等到segment数据都刷到磁盘清空translog日志
-  - 默认30分钟将文件系统缓存刷盘
-  - segment太多时会进行合并生成大的segment，减少索引查询的I/O开销，真正删除之前执行过delete操作的数据
+  之后文件才能被检索，默认每秒刷一次。在内存和磁盘之间是文件系统缓存。
+  - 当达到默认的时间（1 秒钟）或者内存的数据达到一定量时，会触发一次刷新（Refresh），将内存中的数据生  
+  成到一个新的段上并缓存到文件缓存系统 上，稍后再被刷新到磁盘中并生成提交点。
+  - 这里的内存使用的是 ES 的 JVM 内存，而文件缓存系统使用的是操作系统的内存。
+  - 为了避免丢失数据，Elasticsearch 添加了事务日志（Translog，5s刷一次盘），事务日志记录了所有还没有持久化到磁盘的数据。
+    - 一个新文档被索引之后，先被写入到内存中，但是为了防止数据的丢失，会追加一份数据到事务日志中。
+    - 不断有新的文档被写入到内存，同时也都会记录到事务日志中。这时新数据还不能被检索和查询
+    - 当达到默认的刷新时间或内存中的数据达到一定量后，会触发一次  Refresh，将内存中的数据以一个新段形式刷新到  
+    文件缓存系统中并清空内存。这时虽然新段未被提交到磁盘，但是可以提供文档的检索功能且不能被修改。
+    - 随着新文档索引不断被写入，当日志数据大小超过 512M 或者时间超过 30 分钟时，会触发一次 Flush。
+    - 存中的数据被写入到一个新段同时被写入到文件缓存系统，文件系统缓存中数据通过 Fsync 刷新到磁盘中，  
+    生成提交点，日志文件被删除，创建一个空的新日志。
+  - 段合并
+    - 由于自动刷新流程每秒会创建一个新的段 ，这样会导致短时间内的段数量暴增。而段数目太多会带来较大的麻烦。
+    - 每一个段都会消耗文件句柄、内存和 CPU 运行周期。更重要的是，每个搜索请求都必须轮流检查每个段然后合并查询结果，所以段越多，搜索也就越慢。
+    - Elasticsearch 通过在后台定期进行段合并来解决这个问题。小的段被合并到大的段，然后这些大的段再被合并到更大的段。
+    - 段合并的时候会将那些旧的已删除文档从文件系统中清除。被删除的文档不会被拷贝到新的大段中。合并的过程中不会中断索引和搜索。
+    - 段合并在进行索引和搜索时会自动进行，合并进程选择一小部分大小相似的段，并且在后台将它们合并到更大的段中，这些段既可以是未提交（未刷盘）的也可以是已提交（已刷盘）的。
+    - 合并结束后老的段会被删除，新的段被 Flush 到磁盘，同时写入一个包含新段且排除旧的和较小的段的新提交点，新的段被打开可以用来搜索。
+    - 段合并的计算量庞大， 而且还要吃掉大量磁盘 I/O，段合并会拖累写入速率，如果任其发展会影响搜索性能。
+    - Elasticsearch 在默认情况下会对合并流程进行资源限制，所以搜索仍然有足够的资源很好地执行。
+- 调整配置参数
+  - 给每个文档指定有序的具有压缩良好的序列模式 ID，避免随机的 UUID-4 这样的 ID，这样的 ID 压缩比很低，会明显拖慢 Lucene。
+  - 对于那些不需要聚合和排序的索引字段禁用 Doc values。Doc Values 是有序的基于 document=>field value 的映射列表。
+    对于非text字段类型，doc_values默认情况下是打开的
+  - 不需要做模糊检索的字段使用 Keyword 类型代替 Text 类型，这样可以避免在建立索引前对这些文本进行分词。
+  - 如果你的搜索结果不需要近实时的准确度，考虑把每个索引的 index.refresh_interval 改到 30s 。
+  - 如果你是在做大批量导入，导入期间你可以通过设置这个值为 -1 关掉刷新，还可以通过设置 index.number_of_replicas: 0 关闭副本。  
+  别忘记在完工的时候重新开启它。
+  - 避免深度分页查询建议使用 Scroll 进行分页查询。普通分页查询时，会创建一个 from+size 的空优先队列，每个分片会返回 from+size   
+  条数据，默认只包含文档 ID 和得分 Score 给协调节点。
+  - 如果有 N 个分片，则协调节点再对（from+size）×n 条数据进行二次排序，然后选择需要被取回的文档。当 from 很大时，排序过程会变得很沉重，占用 CPU 资源严重。
+  - 减少映射字段，只提供需要检索，聚合或排序的字段。其他字段可存在其他存储设备上，例如 Hbase，在 ES 中得到结果后再去 Hbase 查询这些字段。
+  - 创建索引和查询时指定路由 Routing 值，这样可以精确到具体的分片查询，提升查询效率。路由的选择需要注意数据的分布均衡。
 - 不同节点介紹
   - 当节点node.master：false node.data: false时，该节点只能作为路由节点，用来协调主节点和数据节点，路由请求
   - 数据节点主要是存储索引数据的节点，并对文档进行操作，对cpu、内存、IO等要求较高

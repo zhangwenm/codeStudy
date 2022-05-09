@@ -3,24 +3,26 @@ import java.util.Map;
 
 /**
  * @program: codeStudy
- * @description: TODO
+ * @description: https://www.nowcoder.com/practice/8c82a5b80378478f9484d87d1c5f12a4?tpId=117&tqId=37764&rp=1&ru=/exam/oj&qru=/exam/oj&sourceUrl=%2Fexam%2Foj%3Ftab%3D%25E7%25AE%2597%25E6%25B3%2595%25E7%25AF%2587%26topicId%3D117&difficulty=undefined&judgeStatus=undefined&tags=&title=
  * @author: zwm
  * @create: 2022-04-12 15:05
  **/
 public class SkipFloor {
+    int[] dp;
+    public int jumpFloor(int target) {
+        dp= new int[target+1];
+    return getMaxStep(target);
 
-    public int[] twoSum (int[] numbers, int target) {
-        // write code here
-        Map<Integer,Integer> map = new HashMap<>();
-
-        for (int i = 0; i < numbers.length; i++) {
-            if(map.containsKey(target-numbers[i])){
-                return new int[]{map.get(target-numbers[i])+1,i+1};
-            }else{
-                map.put(numbers[i],i);
-            }
+    }
+    public int getMaxStep(int target){
+        if(target<3){
+            return target;
         }
-        throw new IllegalStateException("error");
+        if(dp[target]>0){
+            return dp[target];
+        }
+        dp[target] = getMaxStep(target-1)+getMaxStep(target-2);
+        return dp[target];
     }
-    }
+}
 

@@ -77,8 +77,11 @@
   志等，这个编号也被称之为undo no。
 - roll_pointer本质上就是一个指向记录对应的undo日志的一个指针
 - 删除
+- 
   - 仅仅将记录的delete_mask标识位设置为1，其他的不做修改（其实会修改记录的trx_id、roll_pointer这些隐藏列的值）
   - 当该删除语句所在的事务提交之后，会有专门的线程后来真正的把记录删除掉。所谓真正的删除就是把该记录从正常记录链表中移除，并且加入到垃
     圾链表中，
 - 在对一条记录进行delete mark操作前，需要把该记录的旧的trx_id和roll_pointer隐藏列的值都给记到对应的undo日志中来，就是我们图中显示的old
   trx_id和old roll_pointer属性。这样有一个好处，那就是可以通过undo日志的old roll_pointer找到记录在修改之前对应的undo日志（即插入undo）。
+#### double write
+- [double write](https://www.cnblogs.com/geaozhang/p/7241744.html).
