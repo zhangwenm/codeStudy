@@ -56,3 +56,5 @@
   或者< sort_key, packed_additional_fields >
   - 双路排序（又叫回表排序模式）：是首先根据相应的条件取出相应的排序字段和可以直接定位行 数据的行 ID，然后在 sort buffer 中进行排序，排序完后需要再次取回其它  
   需要的字段；用trace工具 可以看到sort_mode信息里显示< sort_key, rowid >
+#### 死锁
+[mysql死锁](https://segmentfault.com/a/1190000037510033)

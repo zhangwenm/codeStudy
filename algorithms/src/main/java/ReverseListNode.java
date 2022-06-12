@@ -6,6 +6,7 @@ import java.util.Random;
  * @description: https://www.nowcoder.com/practice/75e878df47f24fdc9dc3e400ec6058ca?tpId=117&tqId=37777&rp=1&ru=/exam/oj&qru=/exam/oj&sourceUrl=%2Fexam%2Foj%3Ftab%3D%25E7%25AE%2597%25E6%25B3%2595%25E7%25AF%2587%26topicId%3D117&difficulty=undefined&judgeStatus=undefined&tags=&title=
  * @author: zwm
  * @create: 2022-04-12 15:24
+ * 解法https://labuladong.github.io/algo/2/17/17/
  **/
 public class ReverseListNode {
     static class ListNode{
@@ -64,6 +65,7 @@ public class ReverseListNode {
         }
         return pre;
     }
+
     /*
     * https://www.nowcoder.com/practice/b49c3dc907814e9bbfa8437c251b028e?tpId=117&tqId=37746&rp=1&ru=/exam/oj&qru=/exam/oj&sourceUrl=%2Fexam%2Foj%3Ftab%3D%25E7%25AE%2597%25E6%25B3%2595%25E7%25AF%2587%26topicId%3D117&difficulty=undefined&judgeStatus=undefined&tags=&title=
     * */

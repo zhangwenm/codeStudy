@@ -12,13 +12,16 @@
 - 组成
   - 生产者、虚拟机、交换机、消费者
 - amqp协议 erlang开发
-- 简单模式
-- 工作队列模式
-- 发布订阅模式
+- 简单模式：一个生产者，一个消费者
+- 工作队列模式：一对多消费者
+- 发布订阅模式：增加了交换机，消息发送到交换机。由交换机转发给队列。需要设置交换机与队列绑定
+  - Routing 模式要求队列在绑定交换机时要指定 routing key，消息会转发到符合 routing key 的队列。
+  - Topic 主题模式可以实现 Pub/Sub 发布与订阅模式和 Routing 路由模式的功能，只是 Topic 在配置routing key 的时候可以使用通配符，显得更加灵活。
 - 生产者
   - confirm
-    - 不能到达返回false，到达交换机返回ture
-  - return
+    - ack表示消息被broker接收，
+    - nack表示broker拒收，（队列已满、io、限流等）
+  - return表示消息被正常ack后，但broker没有对应的队列进行投递时，消息退回给生产者
     - 参数设置成true
     - 到达不了队列回调
 - 消费者
@@ -37,6 +40,7 @@
   - 消费者宕机
   - 消费能力不足
   - 发送量大
+  - 
 - 方案
   - 上线更多的消费者
   - 批量读取
@@ -173,7 +177,7 @@
     - 指定partition
     - 未指定partition但制定了key，通过对key的value hash选择partition
     - 都未指定，轮询
-- 消息写入流程
+- 消息写入流程 
   ![](/studyforbat/pic/kafka_pro duce.png)
   - producer找到partition的leader发送消息
   - leader写入本地log

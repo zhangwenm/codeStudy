@@ -1,4 +1,4 @@
-## ShardingSphere
+ ## ShardingSphere
 - ShardingSphere包含三个重要的产品，
   - ShardingJDBC、ShardingProxy和 ShardingSidecar。
   - 其中sidecar是针对service mesh定位的一个分库分表插件，目

@@ -1,8 +1,6 @@
 import org.apache.logging.log4j.core.util.FileUtils;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -26,5 +24,48 @@ public class SumTwoNum {
         }
         throw new IllegalStateException("error");
     }
+    
+    public List<List<Integer>> getRes(int[] arr,int k,int start,int target){
+        List<List<Integer>> res = new ArrayList<>();
+        
+        if(k<2){
+            return res;
+        }
+        int lo=start;
+        int hi=arr.length-1;
+        if(k==2){
+            while(lo<hi){
+                int left = arr[lo];
+                int right = arr[hi];
+                int sum = left+right;
+                if(sum>target){
+                    while(lo<hi&&arr[hi]==right) hi--;
+                }else if(sum<target){
+                    while(lo<hi&&arr[lo]==left) lo++;
+                }else{
+                    List<Integer> tmp = new ArrayList<>();
+                    tmp.add(arr[lo]);
+                    tmp.add(arr[hi]);
+                    while(lo<hi&&arr[lo]==left) lo++;
+                    while(lo<hi&&arr[hi]==right) hi--;
+                }
+            }
+        }else{
+            for (int i = start; i < arr.length; i++) {
+                List<List<Integer>> sub = getRes(arr,k-1,i+1,target-arr[i]);
+                for (List<Integer> item:sub
+                     ) {
+                    item.add(arr[i]);
+                    res.add(item);
+                }
+                while(i<arr.length-1&&arr[i]==arr[i+1]){
+                    i++;
+                }
+            }
+        }
+        return res;
+    }
+
+    
     }
 

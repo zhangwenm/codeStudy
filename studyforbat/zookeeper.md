@@ -75,6 +75,6 @@
 - leader服务器处理或丢弃事务都是依赖着zxid的
   - zxid是一个64位数字，其中低32位可以看做一个简单的递增计数器，针对客户端的每一个事务请求，leader都会产生一个新的proposal并将该  
   计数器+1
-  - 高32位则代表了leader上本地最大事务proposal的zxid中的epoch值（leader选举周期），当一轮选举结束后，会对这个值+1，事务id从0开始 
+  - 高32位则代表了leader上本地最大事务proposal的epoch值（leader选举周期），当一轮选举结束后，会对这个值+1，事务id从0开始 
   - 高32位代表了leader的唯一性，低32位代表每代事务的唯一性
     ![zxid!](/studyforbat/pic/zk_zxid.png "zxid") 

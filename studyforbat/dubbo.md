@@ -1,5 +1,39 @@
 ## dubbo
-
+- 刚开始设计的定位是RPC 框架，后期随着迭代，涉及到服务治理、服务监控、服务网关等，逐渐发展为服务管理框架
+- ![](/studyforbat/pic/dubbo.png)
+#### duboo的调用原理
+- 服务提供者的导出
+  - 服务导出的入口为ServiceBean的export()方法，在spring启动后通过ContextRefreshEvent()方法触发export的执行
+  - ServiceBean对象代表一个dubbo服务，里边的参数表示服务的参数，timeout等，参数的值来自@service注解
+  - 服务导出做两件事
+    - 根据服务的参数启动对应的网络服务器，处理相应的网络请求
+    - 将服务的信息注册到注册中心，同时还有向注册中心注册监听器，监听Dubbo的中的动态配置信息变更。
+  - 导出步骤
+    - 确定服务的参数
+    - 确定服务支持的协议，Http协议就启动Tomcat、Jetty；Dubbo协议就启动Netty
+    - 构造服务最终的URL
+    - 将服务URL注册到注册中心去
+    - 根据服务支持的不同协议，启动不同的Server，用来接收和处理请求
+    - 因为Dubbo支持动态配置服务参数，所以服务导出时还需要绑定一个监听器Listener来监听服务的参数是否有修改，如果发现有修改，则需要重新进行导出
+- 服务提供者的导入
+  - spring启动的过程中，会给@Reference标注的属性进行赋值，赋值的对象为ReferenceBean对象调用get方法返回的对象，是一个代理对象
+  - ReferenceBean表示应用想要引入的服务的信息，执行get的过程：
+    - 检查更新参数，把ReferenceBean里的值更新为优先级最高的值
+    - 生成代理对象
+    - 生成代理对象前，会把消费者引入的服务设置的参数放入一个map，会根据map中的参数去注册中心寻找服务
+    - 把消费者配置的所有配置中心取出来，调用Protocol的refer方法返回一个Invoker（表示服务执行者）对象
+    - 将Invoker对象t通过PROXY_FACTORY.getProxy(invoker);转为代理对象
+    - 这个代理对象就会赋值给@Reference标注的属性
+- 消费者调用
+  - 最外层是Mock逻辑，调用前，调用后进行Mock,有mock的话先走mock
+  - 从服务目录中，根据当前调用的方法和路由链，筛选出部分服务Invoker（DubboInvoker）
+  - 对服务Invoker进行负载均衡，选出一个服务Invoker
+  - 执行Filter链
+  - AsyncToSyncInvoker完成异步转同步，因为DubboInvoker的执行是异步非阻塞的，所以如果是同步调用，则会在此处阻塞，直到拿到响应结果
+  - DubboInvoker开始异步非阻塞的调用
+  - HeaderExchangeChannel中会阻塞timeout的时间来等待结果，该timeout就是用户在消费端所配置的timeout
+- Dubbo的异常处理
+  - 服务提供者捕获异常，返回给消费端。有消费端抛出
 #### SPI
 - SPI ，全称为 Service Provider Interface(服务提供者接口)，是一种服务发现机制。它通过在ClassPath路径下的META-INF/services文件  
 夹查找文件，自动加载文件里所定义的类。
@@ -14,6 +48,8 @@
     - 然后真正发出请求调用该服务 
     - 消费端收到响应结果后，对p2.active-1 
     - 这样就完成了对某个服务提供者当前活跃调用数进行了统计，并且并不影响服务调用的性能
+- RoundRobin LoadBalance
+  - 轮询，按公约后的权重设置轮询比率
 - Random LoadBalance 
   - 随机，按权重设置随机概率。
   - 在一个截面上碰撞的概率高，但调用量越大分布越均匀，而且按概率使用权重后也比较均匀，有利于动态调整提供者权重。
@@ -93,6 +129,7 @@
 - JsonRPC
 - Hessian2
 - REST
+
 
 
 

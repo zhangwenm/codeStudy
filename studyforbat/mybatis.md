@@ -9,9 +9,10 @@
   - 把生成的bean实例放入Spring容器中
 
 - 整合mybatis
+  - SPRING启动时会为mapper类生成代理
   - 定义一个MapperFactoryBean，用来将Mybatis的代理对象生成一个bean对象
   - 定义一个MapperScannerRegistrar，用来生成不同Mapper对象的FactoryBean
-  - 定义一个@MapperScan，用来在启动Spring时执行MapperScannerRegistrar的逻辑，并指定包路径
+  - 定义一个@MapperScan，用来在启动Spring时执行MapperScannerRegistrar的逻辑，并指定包路径 
   - 然后扫描该路径下的所有Mapper，生成BeanDefinition，放入Spring容器中
   - 这样就把Mybatis中的代理对象作为一个bean放入Spring容器中
   ![](/studyforbat/pic/mybatis架构.png)

@@ -1,21 +1,27 @@
 ## hashmap
 - hashmap
+  - put
+    - 先看链表长度是否要转红黑树，先转在插入
+    - 插入完以后判断是否需要扩容
   - 扩容
     - 数组长度从16到32，其实只是多了一个bit位的运算，我们只需要在意那个多出来的bit为是0还是1，是0的话索引不变，是1的话索引变为当前索引值+扩容的长度，比如5变成5+原数组长度=21
     - 这样的扩容方式不仅节省了重新计算hash的时间，而且保证了当前桶中的元素总数一定小于等于原来桶中的元素数量，避免了更严重的hash冲突，均匀的把之前冲突的节点分散到新的桶中去
+    - 扩容的时候会把红黑树拆成两个子树，如果子树节点数小于等于6则转化为链表
   - 多线程的put可能导致元素的丢失
     - put和get并发时，可能导致get为null
     - DK7中HashMap并发put会造成循环链表，导致get时出现死循环
+      - 1.7使用头插法，多线程扩容时会使链表顺序倒置，修改了链表节点的引用
       - 发生在多线程并发resize的情况下。
       - 如果get一个在这个链表中不存在的key时，就会出现死循环了。
 - concurrenthashMap
   - 1.7
   -![](/studyforbat/pic/curmap.png) 
   - ConcurrentHashMap提出了分段锁的解决方案。  
-  ConcurrentHashMap中维护着一个Segment数组，每个Segment可以看做是一个HashMap。  
-    而Segment本身继承了ReentrantLock，它本身就是一个锁。  
-    在Segment中通过HashEntry数组来维护其内部的hash表。  
-    每个HashEntry就代表了map中的一个K-V，用HashEntry可以组成一个链表结构，通过next字段引用到其下一个元素。
+    - 默认16个锁，扩容是针对segment扩容的，所以锁得数量不变
+    - ConcurrentHashMap中维护着一个Segment数组，每个Segment可以看做是一个HashMap。  
+    - 而Segment本身继承了ReentrantLock，它本身就是一个锁。  
+    - 在Segment中通过HashEntry数组来维护其内部的hash表。  
+    - 每个HashEntry就代表了map中的一个K-V，用HashEntry可以组成一个链表结构，通过next字段引用到其下一个元素。
   - put:
     - // 因为segment本身就是一个锁  
       // 这里调用tryLock尝试获取锁  

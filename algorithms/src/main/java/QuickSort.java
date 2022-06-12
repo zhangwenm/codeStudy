@@ -13,7 +13,20 @@ public class QuickSort {
         String str="hello";
         System.out.print(str == str1);
     }
-
+/*
+* 1.partition 起点，终点，起点值作为比较对象
+* 2.当起点下标下雨终点下标时循环
+*   1.1.当起点下表小于终点下标并且终点下标元素大于比较值时，循环，终点下标减小
+*   1.2.当起点下表小于终点下标时，说明打破循环的的为比较值大于终点元素，将终点元素放在起始下标位置。起点下标增加
+*   2.1.当起点下表小于终点下标并且起点下标元素小于比较值时，循环，起点下标增加
+*   2.2.当起点下表小于终点下标时，说明打破循环的的为比较值小于起点元素，将起点元素放在终点下标位置，终点下标减小
+* 3.比较值赋值给起始下标，返回起始下标
+* 4.快排逻辑
+*   1.获取分界点
+*   2.递归调用
+*
+*
+* */
     public int partion(int[] arr,int start,int end){
         int left = start,right = end;
         int k = arr[left];
@@ -38,7 +51,7 @@ public class QuickSort {
     }
     Random random = new Random();
     public int randomeNum(int[] arr,int left ,int right){
-        int num = random.nextInt(right-left+1)+right;
+        int num = random.nextInt(right-left+1)+left;
         swap(  arr,  num,  left);
         return partion(arr,left,right);
     }
