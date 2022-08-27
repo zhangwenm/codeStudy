@@ -234,6 +234,7 @@
 #### 选举
 - 正常情况下，集群中只有一个Leader，其他节点全是Follower。Follower 都是被动接收请求，从不主动发送任何请求。Candidate   
 候选人，候补者；应试者  是从Follower到Leader的中间状态。
+- Raft 协议是工程上使用比较广泛的一致性， 去中心化的，高可用的分布式协议。
 Raft中引入任期(term) 的概念，每个term内最多只有一个Leader。term 在Raft算法中充当逻辑时钟的作用。服务器之间通信的时候会携带这个term，  
 如果节点发现消息中的term小于自己的term，则拒绝这个消息；如果大于本节点的term，则更新自己的term。如果一个Candidate或者Leader   
 发现自己的任期过期了，它会立即回到Follower状态。

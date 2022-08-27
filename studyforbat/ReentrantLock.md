@@ -15,10 +15,20 @@
    7. tail尾节点
 
 2. 分为公平锁（FairSync）和非公平锁（NonfairSync），都通过继承sync来实现
-
+3. 非公平锁加锁逻辑
+   1. 尝试修改state去获取锁
+   2. cas修改失败，调用acquire
+      1. 会再次尝试获取锁，trquire
+         1. 判断state是否为0，为0cas修改，修改成功返回true
+         2. 不为0看当前持有锁的线程是否为发当前线程，是的话返回true
+         3. 都不满足返回false
+      2. 获取不成功，执行入队，会再次尝试获取锁
+         1. 如果为头节点则尝试获取锁，获取成功返回true
+         2. 石头节点获取失败或者不为头节点，判断是否阻塞
+         3. 如果前驱节点waitstatus为-1，则阻塞，避免无效循环
    * 公平锁枷锁过程  
 
-   ​    1. lock() --> acquire(1)(该方法为AQS内部方法) 尝试获取锁  
+     ​    1. lock() --> acquire(1)(该方法为AQS内部方法) 尝试获取锁  
 
 ``` java
     public final void acquire(int arg) {

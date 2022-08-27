@@ -2,6 +2,7 @@ import org.apache.logging.log4j.core.util.FileUtils;
 
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @program: codeStudy
@@ -14,7 +15,7 @@ public class SumTwoNum {
     public int[] twoSum (int[] numbers, int target) {
         // write code here
         Map<Integer,Integer> map = new HashMap<>();
-
+        ReentrantLock lock = new ReentrantLock();
         for (int i = 0; i < numbers.length; i++) {
             if(map.containsKey(target-numbers[i])){
                 return new int[]{map.get(target-numbers[i])+1,i+1};

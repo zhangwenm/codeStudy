@@ -43,6 +43,16 @@
    上下文中，直到被销毁；
 - 10. 如果应用的上下文被销毁了，如果Bean实现了DisposableBean接口，则调用destroy方法，如果Bean定义了destory-method
     声明了销毁方法也会被调用。
+#### 初始化完成
+解析8种实现方式
+类实现ApplicationContextAware，重写setApplicationContext()方法
+类实现InitializingBean，重写afterPropertiesSet()方法
+在类中的方法上，添加@PostConstruct注解。（@PreDestroy注销时使用）
+类实现BeanPostProcessor，重写postProcessBeforeInitialization()、postProcessAfterInitialization()方法
+类实现 SmartLifecycle，重写相关方法
+类实现ApplicationContextListener，重写onApplicationEvent()方法
+类实现ApplicationRunner，重写run()方法
+类实现CommandLineRunner，重写run()方法
 #### 循环依赖
 - Spring中A依赖B，B依赖A在初始化的时候就形成了循环依赖    
 -![循环依赖!](/studyforbat/pic/loop_dependncy.png "循环依赖")
@@ -52,13 +62,14 @@
   - 三级缓存：存放封装了早期对象的函数式接口（ObjectFactory），在IOC后期的过程中，当Bean调用了
   构造函数时就会将早期对象封装成ObjectFactory，暴露在三级缓存中。spring的aop动态代理是在bean初始  
   化以后创建的，但是如果有循环依赖的话，无法等到初始化完成，因为此时已经完成了属性填充  
-- 加载过程：
+- 加载过程：  
 首先创建A，1.调用getsingleton（）：getsingleton（）从一级缓存中取，取到直接返回；取不到并且正在创建的话从二级缓存中取  
 ，有的话返回该bean，没有的话并且正在创建，则从三级缓存中取，取出来的话回调ObjectFactory的方法创建实例放入二级缓存   
 ，返回创建好的实例；2.如果getsingleton（）返回null，判断是否已经加入正在创建集合，没有的话加入，然后实例化、将早期实例封装成ObjectFactory  
 暴露在三级缓存中。3.属性填充：调用getsingleton（）获取B，过程同上，当填充到B里边的A时，则能获取到三级缓存中创建的早期实例A进行填充并放入二级缓存，最后移除二  
 级缓存中的B，将B填充到一级缓存，最后移除二、三级缓存中的B。4.递归结束将B填充到A的属性，如果二级缓存中存在A则将填充到一级缓存，最后移除二、三级缓存中的A，
 - ![循环依赖!](/studyforbat/pic/loop-create.png "循环依赖")
+-   
 - 两级缓存的意义
   - 将实例化后的BEAN与初始化完成的BEAN分开存储，同时利用同步锁防止多线程时获取到未初始化完成的BEAN
 - 三级缓存的意义

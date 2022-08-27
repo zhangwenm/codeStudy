@@ -1,6 +1,7 @@
 import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.Stack;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @program: 翻转链表
@@ -45,7 +46,7 @@ public class 相加Node {
             queue.add(head1.val);
             head1 = head1.next;
         }
-
+        ReentrantLock lock = new ReentrantLock();
     }
 
 
