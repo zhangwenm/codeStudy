@@ -1,4 +1,6 @@
 ## git拉取问题
+clone
+git clone -b master git@github.com:zhangwenm/mynacos.git
 connection reset
 git config --global http.sslVerify "false"
 Failed to connect to github.com port 443:connection timed out
@@ -64,14 +66,9 @@ https://blog.51cto.com/u_15077536/4340688
 ````
 
 
+git remote add upstream https://github.com/zhangwenm/mynacos.git
 
-在后台启动 ssh-agent
-eval $(ssh-agent -s)
-将SSH私钥添加到 ssh-agent
-ssh-add /c/Users/14794/.ssh/id_rsa
-
-先复制SSH公钥的完整内容（/c/Users/14794/.ssh/id_rsa/id_rsa.pub）
-clip < /c/Users/14794/.ssh/id_rsa.pub
+git remote add upstream https://github.com/alibaba/nacos.git
 
 
 
