@@ -1,7 +1,5 @@
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
-import com.sun.deploy.util.StringUtils;
-import netscape.javascript.JSObject;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -70,7 +68,7 @@ public class MainTest {
         String string1 = "123";
         String string3 = "234";
 
-        String res = StringUtils.
+//        String res = StringUtils.
 
     }
 
