@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tuling.mapper.UserMapper">
+    <!-- Mybatis 是如何将 sql 执行结果封装为目标对象并返回的？都有哪些映射形式？-->
+    <resultMap id="result" type="user" >
+        <id column="id" jdbcType="BIGINT" property="id" />
+        <result column="user_name" jdbcType="VARCHAR" property="userName" />
+        <result column="create_time" jdbcType="DATE" property="createTime" />
+    </resultMap>
+
+
+    <select id="selectById"  resultMap="result" >
+        select id,user_name,create_time from t_user where id=#{param1}
+    </select>
+
+
+
+
+
+
+
+
+</mapper>
