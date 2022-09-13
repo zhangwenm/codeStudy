@@ -10,7 +10,7 @@
   - PersistenceAnnotationBeanPostProcessor：处理jpa注解
   - EventListenerMethodProcessor：处理EventListener注解
   - DefaultEventListenerFactory：事件工厂
-  - **![](/topic/spring/pic/reader-2022-09-08-1437.png)**  
+- **![](/topic/spring/pic/reader-2022-09-08-1437.png)**  
 
 #### 注册配置类 
 - 将配置类加载成bean定义放入缓存
