@@ -1,7 +1,25 @@
 ## spring 注解方式ioc容器加载分析
 
 ### ioc加载准备  
-#### 调用无参构造函数,创建了Bean工厂（父类构造方法）注册AnnotatedBeanDefinitionReader读取器   
+    public AnnotationConfigApplicationContext(Class<?>... annotatedClasses) {
+		//调用构造函数 
+		this();
+		//注册我们的配置类（还没注冊）
+		register(annotatedClasses);
+		//IOC容器刷新接口
+		refresh();
+	}  
+- ![](/topic/spring/pic/AnnotationConfigApplicationContext.png)  
+
+      public GenericApplicationContext() {
+         /**
+         * 调用父类的构造函数,为ApplicationContext spring上下文对象初始beanFactory
+         * 为啥是DefaultListableBeanFactory？我们去看BeanFactory接口的时候
+         * 发DefaultListableBeanFactory是最底层的实现，功能是最全的
+         */
+        this.beanFactory = new DefaultListableBeanFactory();
+      }
+#### 调用无参构造函数,创建了Bean工厂（父类构造方法），注册AnnotatedBeanDefinitionReader读取器  
 - DefaultListableBeanFactory:通过继承关系可以发现该类处于底层，具有很丰富的功能  
 - **![](/topic/spring/pic/DefaultListableBeanFactory.png)**
 - AnnotatedBeanDefinitionReader:可用来读取注解，在创建该读取器的过程中（构造方法中）会注册一些内置的Bean定义
@@ -28,15 +46,15 @@
     - 注册了事件监听器探测器的后置处理器ApplicationListenerDetector
     - ……
   - 实例化并调用bean工厂的后置处理器（这个时候主要是调用我们手动添加和内置的），主要是调用ConfigurationClassPostProcessor  
-  - 进行配置类解析
+  - postProcessBeanDefinitionRegistry：进行配置类解析
     - 接口直接过滤掉
     - 通过判断是否有configration或者component、componentscan、import、ImportResource注解找到配置类
     - 如果有方法标注了@Bean也符合
     - 设置beanname的生成器
     - 构建配置类的解析器对配置类进行真正解析
       - 如果有@propertySource注解进行处理
-      - 解析我们的 @ComponentScan 注解，将指定路径下的类信息注册成bean定义（会排除掉当前配置类）
-      - 如果扫描出来的还有配置类会进行递归解析
+      - 解析我们的 @ComponentScan 注解，将指定路径下非接口并且有configration或者component、componentscan、import、  
+      ImportResource注解类信息注册成bean定义（会排除掉当前配置类） 如果扫描出来的还有配置类会进行递归解析
       - 处理 @Import annotations
       - 处理 @ImportResource annotations
       - 处理 @Bean methods 获取到我们配置类中所有标注了@Bean的方法
