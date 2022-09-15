@@ -1,7 +1,29 @@
-## spring 注解方式ioc容器加载分析
-
+## spring 注解方式ioc容器加载配置类分析
+> IOC：控制反转，是一种设计思想。而spring ioc容器则是这种设计思想的具体实现.  
+> 作用：将Bean的创建和维护从开发者转交到spring容器，开发者需要用的时候只需从容器上下文中获取即可，  
+> 从而使开发人员解放出来专注于业务本身。  
+![](/doc/spring/pic/2022-09-08-2053-ioc.png)
 ### ioc加载准备  
-    public AnnotationConfigApplicationContext(Class<?>... annotatedClasses) {
+> Demo
+```java 
+@Configuration
+@ComponentScan(basePackages = {"com.ccc.xxx"})
+        //excludeFilters={@ComponentScan.Filter(type=FilterType.ANNOTATION,value={Controller.class})})
+public class MainConfig {
+
+}
+```
+```java 
+public static void main(String[] args)   {
+		// 加载spring上下文
+		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainConfig.class);
+
+		Animal animal =  (Animal) context.getBean("animal");
+		System.out.println(animal.getName());
+	}
+```
+```java 
+public AnnotationConfigApplicationContext(Class<?>... annotatedClasses) {
 		//调用构造函数 
 		this();
 		//注册我们的配置类（还没注冊）
@@ -9,7 +31,8 @@
 		//IOC容器刷新接口
 		refresh();
 	}  
-- ![](/topic/spring/pic/AnnotationConfigApplicationContext.png)  
+```
+![](/topic/spring/pic/AnnotationConfigApplicationContext.png)  
 
       public GenericApplicationContext() {
          /**
@@ -21,7 +44,7 @@
       }
 #### 调用无参构造函数,创建了Bean工厂（父类构造方法），注册AnnotatedBeanDefinitionReader读取器  
 - DefaultListableBeanFactory:通过继承关系可以发现该类处于底层，具有很丰富的功能  
-- **![](/topic/spring/pic/DefaultListableBeanFactory.png)**
+**![](/topic/spring/pic/DefaultListableBeanFactory.png)**
 - AnnotatedBeanDefinitionReader:可用来读取注解，在创建该读取器的过程中（构造方法中）会注册一些内置的Bean定义
   - ConfigurationClassPostProcessor：用于扫描配置类，扫描指定路径（basePackages）下的类信息加载成Bean定义
   - AutowiredAnnotationBeanPostProcessor：处理autowire
@@ -30,10 +53,112 @@
   - PersistenceAnnotationBeanPostProcessor：处理jpa注解
   - EventListenerMethodProcessor：处理EventListener注解
   - DefaultEventListenerFactory：事件工厂
-- **![](/topic/spring/pic/reader-2022-09-08-1437.png)**  
+![](/topic/spring/pic/reader-2022-09-08-1437.png)  
+>注册内置处理器代码片段
+``` java
+public static Set<BeanDefinitionHolder> registerAnnotationConfigProcessors(
+     BeanDefinitionRegistry registry, @Nullable Object source) {
 
+        DefaultListableBeanFactory beanFactory = unwrapDefaultListableBeanFactory(registry);
+        if (beanFactory != null) {
+            if (!(beanFactory.getDependencyComparator() instanceof AnnotationAwareOrderComparator)) {
+                //注册了实现Order接口的排序器
+                beanFactory.setDependencyComparator(AnnotationAwareOrderComparator.INSTANCE);
+            }
+            //设置@AutoWired的候选的解析器：ContextAnnotationAutowireCandidateResolver
+            // getLazyResolutionProxyIfNecessary方法，它也是唯一实现。
+            //如果字段上带有@Lazy注解，表示进行懒加载 Spring不会立即创建注入属性的实例，而是生成代理对象，来代替实例
+            if (!(beanFactory.getAutowireCandidateResolver() instanceof ContextAnnotationAutowireCandidateResolver)) {
+                beanFactory.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver());
+            }
+        }
+
+        Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
+
+        /**
+         * 为我们容器中注册了解析我们配置类的后置处理器ConfigurationClassPostProcessor
+         * 名字叫:org.springframework.context.annotation.internalConfigurationAnnotationProcessor
+         */
+        if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+            RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
+            def.setSource(source);
+            beanDefs.add(registerPostProcessor(registry, def, CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME));
+        }
+
+        /**
+         * 为我们容器中注册了处理@Autowired 注解的处理器AutowiredAnnotationBeanPostProcessor
+         * 名字叫:org.springframework.context.annotation.internalAutowiredAnnotationProcessor
+         */
+        if (!registry.containsBeanDefinition(AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+            RootBeanDefinition def = new RootBeanDefinition(AutowiredAnnotationBeanPostProcessor.class);
+            def.setSource(source);
+            beanDefs.add(registerPostProcessor(registry, def, AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME));
+        }
+
+        /**
+         * 为我们容器中注册处理@Required属性的注解处理器RequiredAnnotationBeanPostProcessor
+         * 名字叫:org.springframework.context.annotation.internalRequiredAnnotationProcessor
+         */
+        if (!registry.containsBeanDefinition(REQUIRED_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+            RootBeanDefinition def = new RootBeanDefinition(RequiredAnnotationBeanPostProcessor.class);
+            def.setSource(source);
+            beanDefs.add(registerPostProcessor(registry, def, REQUIRED_ANNOTATION_PROCESSOR_BEAN_NAME));
+        }
+
+        /**
+         * 为我们容器注册处理JSR规范的注解处理器CommonAnnotationBeanPostProcessor
+         * org.springframework.context.annotation.internalCommonAnnotationProcessor
+         */
+        if (jsr250Present && !registry.containsBeanDefinition(COMMON_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+            RootBeanDefinition def = new RootBeanDefinition(CommonAnnotationBeanPostProcessor.class);
+            def.setSource(source);
+            beanDefs.add(registerPostProcessor(registry, def, COMMON_ANNOTATION_PROCESSOR_BEAN_NAME));
+        }
+
+        /**
+         * 处理jpa注解的处理器org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor
+         */
+        if (jpaPresent && !registry.containsBeanDefinition(PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+            RootBeanDefinition def = new RootBeanDefinition();
+            try {
+                def.setBeanClass(ClassUtils.forName(PERSISTENCE_ANNOTATION_PROCESSOR_CLASS_NAME,
+                        AnnotationConfigUtils.class.getClassLoader()));
+            }
+            catch (ClassNotFoundException ex) {
+                throw new IllegalStateException(
+                        "Cannot load optional framework class: " + PERSISTENCE_ANNOTATION_PROCESSOR_CLASS_NAME, ex);
+            }
+            def.setSource(source);
+            beanDefs.add(registerPostProcessor(registry, def, PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME));
+        }
+
+        /**
+         * 处理监听方法的注解@EventListener解析器EventListenerMethodProcessor
+         */
+        if (!registry.containsBeanDefinition(EVENT_LISTENER_PROCESSOR_BEAN_NAME)) {
+            RootBeanDefinition def = new RootBeanDefinition(EventListenerMethodProcessor.class);
+            def.setSource(source);
+            beanDefs.add(registerPostProcessor(registry, def, EVENT_LISTENER_PROCESSOR_BEAN_NAME));
+        }
+
+        /**
+         * 注册事件监听器工厂
+         */
+        if (!registry.containsBeanDefinition(EVENT_LISTENER_FACTORY_BEAN_NAME)) {
+            RootBeanDefinition def = new RootBeanDefinition(DefaultEventListenerFactory.class);
+            def.setSource(source);
+            beanDefs.add(registerPostProcessor(registry, def, EVENT_LISTENER_FACTORY_BEAN_NAME));
+        }
+
+        return beanDefs;
+    }
+```
+ 
 #### 注册配置类 
-- 将配置类加载成bean定义放入缓存
+> 将配置类加载成bean定义放入缓存
+```java  
+register(annotatedClasses);
+```
 #### 刷新容器 
 - 这是容器启动非常重要的一步，基本贯穿了容器的整个生命周期
   - 准备上下文，主要是记录启动时间以及激活状态等。
