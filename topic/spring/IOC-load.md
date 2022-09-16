@@ -166,30 +166,51 @@ register(annotatedClasses);
   - 对bean工厂进行属性填充
     - 设置类加载器、表达式解析器、属性资源编辑器等
     - 添加了一个bean的后置处理器ApplicationContextAwareProcessor
-    - 忽略了一些接口的自动装配，防止自动注入到容器（这些接口都有setXxx方法），以便于进行手动设置
-    - 注册了一些接口的自动注入
-    - 注册了事件监听器探测器的后置处理器ApplicationListenerDetector
-    - ……
-  - 实例化并调用bean工厂的后置处理器（这个时候主要是调用我们手动添加和内置的），主要是调用ConfigurationClassPostProcessor  
-  - postProcessBeanDefinitionRegistry：进行配置类解析
-    - 接口直接过滤掉
-    - 通过判断是否有configration或者component、componentscan、import、ImportResource注解找到配置类
-    - 如果有方法标注了@Bean也符合
-    - 设置beanname的生成器
-    - 构建配置类的解析器对配置类进行真正解析
-      - 如果有@propertySource注解进行处理
-      - 解析我们的 @ComponentScan 注解，将指定路径下非接口并且有configration或者component、componentscan、import、  
-      ImportResource注解类信息注册成bean定义（会排除掉当前配置类） 如果扫描出来的还有配置类会进行递归解析
-      - 处理 @Import annotations
-      - 处理 @ImportResource annotations
-      - 处理 @Bean methods 获取到我们配置类中所有标注了@Bean的方法
-      - 处理配置类接口 默认方法的@Bean
-      - 处理配置类的父类的 ，循环再解析
-      - 处理完以上逻辑后，会会处理延时加载的DeferredImportSelectors。springboot就是通过这种方式来加载spring.factories中配置的自动装配类
-        - 如果实现了ImportSelector，调用相关的aware方法。然后看是否为延时的DeferredImportSelectors，是的华不行行处理；不是的话调用selector  
-        的selectImports，递归解析-- 直到成普通组件
-        -如果导入的的组件是ImportBeanDefinitionRegistrar，这里不直接调用，只是解析   
-        - 否则当做配置类再解析，注意这里会标记：importedBy，  表示这是Import的配置的类
+    - 忽略了一些接口的自动装配，防止自动注入到容器（这些接口都有setXxx方法），以便于进行手动设置  
+
+``` java  
+  beanFactory.ignoreDependencyInterface(EnvironmentAware.class);
+  beanFactory.ignoreDependencyInterface(EmbeddedValueResolverAware.class);
+  beanFactory.ignoreDependencyInterface(ResourceLoaderAware.class);
+  beanFactory.ignoreDependencyInterface(ApplicationEventPublisherAware.class);
+  beanFactory.ignoreDependencyInterface(MessageSourceAware.class);
+  beanFactory.ignoreDependencyInterface(ApplicationContextAware.class);
+ ```
+- 
+  - 
+     - 注册了一些接口的自动注入
+``` java  
+beanFactory.registerResolvableDependency(BeanFactory.class, beanFactory);
+beanFactory.registerResolvableDependency(ResourceLoader.class, this);
+beanFactory.registerResolvableDependency(ApplicationEventPublisher.class, this);
+beanFactory.registerResolvableDependency(ApplicationContext.class, this);
+ ```
+- 
+  - 
+       - 注册了事件监听器探测器的后置处理器ApplicationListenerDetector
+         - 用于初始化后期后置处理器调用进行监听器注册
+       - ……
+       - 实例化并调用bean工厂的后置处理器（这个时候主要是调用我们手动添加和内置的），主要是调用ConfigurationClassPostProcessor  
+       - postProcessBeanDefinitionRegistry：进行配置类解析
+         - 接口直接过滤掉
+         - 通过判断是否有configration或者component、componentscan、import、ImportResource注解找到配置类
+         - 如果有方法标注了@Bean也符合
+         - 设置beanname的生成器
+         - 构建配置类的解析器对配置类进行真正解析
+           - 如果有@propertySource注解进行处理
+           - 解析我们的 @ComponentScan 注解，将指定路径下非接口并且有configration或者component、componentscan、import、  
+           ImportResource注解类信息注册成bean定义（会排除掉当前配置类） 如果扫描出来的还有配置类会进行递归解析
+           - 处理 @Import annotations
+           - 处理 @ImportResource annotations
+           - 处理 @Bean methods 获取到我们配置类中所有标注了@Bean的方法
+           - 处理配置类接口 默认方法的@Bean
+           - 处理配置类的父类的 ，循环再解析
+           - 处理完以上逻辑后，会会处理延时加载的DeferredImportSelectors。springboot就是通过这种方式来加载spring.factories中配置的自动装配类
+             - 如果实现了ImportSelector，调用相关的aware方法。然后看是否为延时的DeferredImportSelectors，是的华不行行处理；不是的话调用selector  
+             的selectImports，递归解析-- 直到成普通组件
+             - 如果导入的的组件是ImportBeanDefinitionRegistrar，这里不直接调用，只是解析   
+             否则当做配置类再解析，注意这里会标记：importedBy，  表示这是Import的配置的类
+> 至此，注解方式配置解析流程梳理完毕。
 
 
 
