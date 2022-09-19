@@ -232,20 +232,30 @@ private static void invokeBeanDefinitionRegistryPostProcessors(
           - 如果有方法标注了@Bean也符合
           - 设置beanname的生成器
           - 构建配置类的解析器对配置类进行真正解析
-            - 如果有@propertySource注解进行处理
-            - 解析我们的 @ComponentScan 注解，将指定路径下非接口并且有configration或者component、componentscan、import、  
-            ImportResource注解类信息注册成bean定义（会排除掉当前配置类） 如果扫描出来的还有配置类会进行递归解析
+            - 如果有@propertySource注解进行处理：该注解可以将指定的配置文件加载到容器中
+            - 解析我们的 @ComponentScan 注解
+              - 获取componentScans注解内容进行解析
+              - 创建ClassPathBeanDefinitionScanner
+                - 会加入默认的includeFilters（扫描Component、JSR250规范、JSR330规范），这也是为啥我们标注了@Compent @Repository @Service @Controller 能够被识别解析
+              - 解析includeFilters、excludeFilters等自定义内容
+              - 加了默认的AbstractTypeHierarchyTraversingFilter会在注册bean定义时排除掉当前配置类
+              - 获取指定路径下的class资源
+                - 根据includeFilters、excludeFilters设置的内容进行筛选
+                - 符合顶级类、嵌套类、静态内部类&非接口、非抽象类& 抽象类并且必须方法中有@LookUp
+              - 设置beanName、autowire-candidate注入候选、获取@Lazy @DependsOn等注解的数据设置到BeanDefinition中
+              - 注册bean定义到容器中
+              - 如果扫描到的Bean定义为配置类会进行递归解析
             - 处理 @Import annotations
             - 处理 @ImportResource annotations
             - 处理 @Bean methods 获取到我们配置类中所有标注了@Bean的方法
             - 处理配置类接口 默认方法的@Bean
             - 处理配置类的父类的 ，循环再解析
-            - 处理完以上逻辑后，会会处理延时加载的DeferredImportSelectors。springboot就是通过这种方式来加载spring.factories中配置的自动装配类
+            - 处理完以上逻辑后，会处理延时加载的DeferredImportSelectors。springboot就是通过这种方式来加载spring.factories中配置的自动装配类
               - 如果实现了ImportSelector，调用相关的aware方法。然后看是否为延时的DeferredImportSelectors，是的华不行行处理；不是的话调用selector  
               的selectImports，递归解析-- 直到成普通组件
               - 如果导入的的组件是ImportBeanDefinitionRegistrar，这里不直接调用，只是解析   
               否则当做配置类再解析，注意这里会标记：importedBy，  表示这是Import的配置的类
-> 至此，注解方式配置解析流程梳理完毕。
+> 至此，注解方式配置类解析流程梳理完毕。
 
 
 
