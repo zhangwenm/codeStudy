@@ -76,7 +76,7 @@ MAVEN_HOME = C:\appstore\apache-maven-3.8.1
 path = %MAVEN_HOME%\bin
 
 
-重复双引号消除问题
+## 重复双引号消除问题
 String skuId = skuId.replaceAll("\"","");
 
 json字符串截取key value
@@ -89,12 +89,40 @@ int last= msg.indexOf(",",start);
 String res=msg.substring(start,last);
 String[] arr = res.split(":");
 
+## 运算
 %取模
 /除
 
+## mapstruct
+- 定义集合转换的方法时先定义单个实体转换的方法
+- lombok和mapstruct冲突
+  <plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-compiler-plugin</artifactId>
+  <configuration>
+  <source>11</source>
+  <target>11</target>
+  <annotationProcessorPaths>
+  <path>
+  <groupId>org.mapstruct</groupId>
+  <artifactId>mapstruct-processor</artifactId>
+  <version>1.5.2.Final</version>
+  </path>
+  <path>
+  <groupId>org.projectlombok</groupId>
+  <artifactId>lombok</artifactId>
+  <version>1.18.18</version>
+  </path>
+  <!-- This is needed when using Lombok 1.18.16 and above -->
+  <path>
+  <groupId>org.projectlombok</groupId>
+  <artifactId>lombok-mapstruct-binding</artifactId>
+  <version>0.2.0</version>
+  </path>
+  </annotationProcessorPaths>
+  </configuration>
+  </plugin>
 
-color jsf 服务启动顺序对接口注册的影响
-泛型作为jsf接口的返回结果反序列化的问题
 
 
 
@@ -102,7 +130,8 @@ color jsf 服务启动顺序对接口注册的影响
 
 
 
-6519	371311	P37131102398	京东大药房连锁（山东）有限公司临沂清河南路店	4	药店	3162	药店交易审核接口	13
+
+
 
 
 gms_product_productBase：十亿

@@ -1,6 +1,11 @@
 package daliy.test;
 
+import org.apache.logging.log4j.core.util.Assert;
+
+import java.math.BigDecimal;
 import java.sql.ResultSet;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @Auther: NOC
@@ -9,7 +14,15 @@ import java.sql.ResultSet;
  */
 public class Circulatory {
     public static void main(String[] args) {
-        getNumber();
+
+        String str = "";
+        Integer num=0;
+        addNumber(num++);
+        System.out.println("num:"+num);
+        BigDecimal b1 = new BigDecimal(10.0);
+
+        Assert.requireNonEmpty(str,"str is empty");
+        System.out.println("%:"+4/3);
     }
 
     public static int getNumber(){
@@ -30,5 +43,8 @@ public class Circulatory {
         }
         System.out.println("end:"+var3);
         return var3;
+    }
+    public static  void addNumber(Integer num){
+        System.out.println("inner num:"+num);
     }
 }
