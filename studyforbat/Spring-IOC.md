@@ -3,18 +3,78 @@
 #### Bean定义的生成
 - IOC容器启动，首先会创建BeanFactory实例，这个实例用于生产Bean
 - 创建Bean定义的读取器，
-  - 生成ConfigurationClassPostProcessor定义
-    - ConfigurationClassPostProcessor实现BeanDefinitionRegistryPostProcessor接口，可以注册BeanDefinition
-      BeanDefinitionRegistryPostProcessor接口又扩展了BeanFactoryPostProcessor接口，
-      BeanFactoryPostProcessor是Spring的扩展点之一，可以修改BeanDefinition。ConfigurationClassPostProcessor是Spring极
-      为重要的一个类，必须牢牢的记住上面所说的这个类和它的继承关系。
-    - 除了注册了ConfigurationClassPostProcessor，还注册了其他Bean，其他Bean也都实现了其他接口，比
-      如BeanPostProcessor等。
-      BeanPostProcessor接口也是Spring的扩展点之一。
-  - 然后将bean定义注册到BeanDefinitionMap（spring内置类）
+  - 注册内置后置处理器（包括ConfigurationClassPostProcessor用于解析配置类、處理autowire、require、common、事件  
+  （解析注解类的监听器实现了SmartInitializingSingleton）等注解的处理器），放入BeanDefinitionmap和name 
+    - 生成ConfigurationClassPostProcessor定义
+      - ConfigurationClassPostProcessor实现BeanDefinitionRegistryPostProcessor接口，可以注册BeanDefinition
+        BeanDefinitionRegistryPostProcessor接口又扩展了BeanFactoryPostProcessor接口，
+        BeanFactoryPostProcessor是Spring的扩展点之一，可以修改BeanDefinition。ConfigurationClassPostProcessor是Spring极
+        为重要的一个类，必须牢牢的记住上面所说的这个类和它的继承关系。
+      - 除了注册了ConfigurationClassPostProcessor，还注册了其他Bean，其他Bean也都实现了其他接口，比
+        如BeanPostProcessor等。
+        BeanPostProcessor接口也是Spring的扩展点之一。
+    - 然后将bean定义注册到BeanDefinitionMap（spring内置类）
 - 创建BeanDefinition扫描器:ClassPathBeanDefinitionScanner
   - 为了程序员可以手动调用AnnotationConfigApplicationContext对象的scan方法
-- 创建创建BeanDefinition注册器
+- 注册我们的配置类
+- 刷新容器
+  - 创建bean工厂并进行属性填充
+  - 调用bean工厂的后置处理器invokeBeanFactoryPostProcessors：1.生成bean定义，2.bean工厂后置处理器调用
+    - 调用自定义的具有注册功能的处理器的后置房法
+    - 生成BeanDefinitionRegistryPostProcessor，调用内置实现PriorityOrdered接口的该处理器的postProcessBeanDefinitionRegistry：
+    典型的就是ConfigurationClassPostProcessor
+      - 将有component，componetscan、impoirt、importresource、configration，有@Bean标注的方法的bean定义加入到候选的配置类集合中（这一步bean定义只有内置的和我们的配置类），
+      所以拿到配置类的bean定义
+      - ConfigurationClassParser：创建一个配置类解析器对象
+      - 从我们的配置类上解析处ComponentScans的对象集合属性
+      - 把我们扫描出来的类变为bean定义的集合 真正的解析
+        - 设置CompentScan对象的includeFilters ，excludeFilters等属性，会添加默认排除配置类本身的过滤器
+        - 循环我们的包路径集合
+        - 判断是否为候选组件（即是否在排除和包含属性中）
+        - ……
+      - 把@Bean的方法和@Import 注册到BeanDefinitionMap中
+    - 调用实现自定义Order接口BeanDefinitionRegistryPostProcessor。postProcessBeanFactory方法
+    - 调用没有实现任何优先级接口的BeanDefinitionRegistryPostProcessor。postProcessBeanFactory方法
+    - 调用 BeanDefinitionRegistryPostProcessor.postProcessBeanFactory方法
+      - 该方法会对full配置类进行cglib代理：作用是当配置类中有@Bean方法引用另一个Bean，会避免重复创建，而是把这个Bean交给了容器管理
+    - 调用自定义的BeanFactoryPostProcessor 。postProcessBeanFactory
+  - 获取容器中所有的 未执行过的BeanFactoryPostProcessor，
+    - 先调用BeanFactoryPostProcessor实现了 PriorityOrdered接口的postProcessBeanFactory方法
+    - 再调用BeanFactoryPostProcessor实现了 Ordered.接口的postProcessBeanFactory方法
+    - 调用没有实现任何方法接口的接口的postProcessBeanFactory方法
+- registerBeanPostProcessors：注册我们bean的后置处理器
+  - 去容器中获取所有的BeanPostProcessor 并实例化
+    - 把实现了priorityOrdered的BeanPostProcessor 注册到容器中
+    - 排序并且注册我们实现了Order接口的后置处理器
+    - 注册我们普通的没有实现任何排序接口的的BeanPostProcessor
+    - 注册.MergedBeanDefinitionPostProcessor类型的后置处理器 bean 合并后的处理， Autowired 注解正是通过此方法实现诸如类型的预解析
+    - 注册ApplicationListenerDetector 应用监听器探测器的后置处理器
+- ……
+- finishBeanFactoryInitialization:实例化我们剩余的单例bean：beanFactory.preInstantiateSingletons()
+  - 不是抽象的&& 单例的 &&不是懒加载的，不是工厂bean
+  - getBean-->doGetBean
+    - 第1个bean后置处理器调用:InstantiationAwareBeanPostProcessors.postProcessBeforeInstantiation.事务以及切面解析都是通过导入了相关实现了
+    我们的 BeanPostProcessor,InstantiationAwareBeanPostProcessor接口的类进行解析的
+    - 实例化：创建bean实例化 使用合适的实例化策略来创建新的实例：工厂方法、构造函数自动注入、简单初始化 该方法很复杂也很重要
+      - 通过SmartInstantiationAwareBeanPostProcessor后置处理器的determineCandidateConstructors方法来查找出对应的构造函数
+      - 上一步返回null则使用无参构造函数
+    - MergedBeanDefinitionPostProcessor： @AutoWired @Value的注解的预解析
+    - 把我们的早期对象包装成一个singletonFactory对象 放到三级缓存该对象提供了一个getObject方法,该方法内部调用SmartInstantiationAwareBeanPostProcessor的getEarlyBeanReference
+    方法，解决循环依赖涉及到的aop动态代理问题
+    - 属性填充
+      - InstantiationAwareBeanPostProcessor：postProcessAfterInstantiation是否终止赋值，一般返回true继续赋值
+      - InstantiationAwareBeanPostProcessor：注入属性的获取：InstantiationAwareBeanPostProcessor。postProcessPropertyValues
+      - 将获取的依赖属性应用到已经实例化的 bean 中
+    - 初始化操作
+      - 若我们的bean实现了Aware接口进行方法的回调（BeanNameAware，BeanClassLoaderAware，BeanFactoryAware）
+      - applyBeanPostProcessorsBeforeInitialization：调用我们的bean的后置处理器的postProcessorsBeforeInitialization方法  @PostCust注解的方法
+      - invokeInitMethods
+        - 判断我们的容器中是否实现了InitializingBean接口，有就调用afterPropertiesSet（）
+        - 调用有@Bean的initMethod
+      - applyBeanPostProcessorsAfterInitialization：调用我们bean的后置处理器的PostProcessorsAfterInitialization方法，aop和事务都会在这里生存代理对象
+  - 加入缓存：addSingleton(beanName, singletonObject);
+  - SmartInitializingSingleton：调用afterSingletonsInstantiated方法
+- 创建BeanDefinition注册器
 - 注册配置类为BeanDefinition： register(annotatedClasses);
 - 利用BeanFactory将BeanDefinitionMap中的BeanDefinition实例化，会调用一系列BeanFactoryPostProcessor后置处理器
 - 实例化BeanDefinition的过程中会调用一系列BeanPostProcessor后置处理器
