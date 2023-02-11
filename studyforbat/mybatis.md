@@ -9,12 +9,15 @@
   - 把生成的bean实例放入Spring容器中
 
 - 整合mybatis
-  - SPRING启动时会为mapper类生成代理
-  - 定义一个MapperFactoryBean，用来将Mybatis的代理对象生成一个bean对象
-  - 定义一个MapperScannerRegistrar，用来生成不同Mapper对象的FactoryBean
-  - 定义一个@MapperScan，用来在启动Spring时执行MapperScannerRegistrar的逻辑，并指定包路径 
-  - 然后扫描该路径下的所有Mapper，生成BeanDefinition，放入Spring容器中
-  - 这样就把Mybatis中的代理对象作为一个bean放入Spring容器中
+  - 定义要扫描的包路径
+    - @MapperScan(basePackages = {"com.tuling.mapper"})
+  - MapperScan通过import引入MapperScannerRegistrar，继承了ImportBeanDefinitionRegistrar
+    - 会在配置类解析的时候调用registerBeanDefinitions方法注册一个MapperScannerConfigurer，实现了BeanDefinitionRegistryPostProcessor
+    - 调用实现了BeanDefinitionRegistryPostProcessor的postProcessBeanDefinitionRegistry方法时会利用重写的ClassPathMapperScanner扫描指定的包
+    - 调用父类ClassPathBeanDefinitionScanner 来进行扫描获取bean定义
+    - 然后循环bena定义将类型修改为MapperFactoryBean
+    - 设置ConstructorArgumentValues 会通过构造器初始化对象，会在实例化MapperFactoryBean时将我们的mapper的class传进去
+    - 最终调用getBean实例化时会根据这个传进来的class生成代理对象，注册到容器中，完成mapper接口的注入
   ![](/studyforbat/pic/mybatis架构.png)
 - 将全局配置文件解析成Configration对象（只会加载一次，重复加载抛异常），解析全局配置文件的内容（property、setting、插件、  
 类型处理器（会维护默认的）、mapper（指定包、指定路径等方式进行配置）等）。

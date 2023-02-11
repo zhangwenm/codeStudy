@@ -53,6 +53,7 @@
 - finishBeanFactoryInitialization:实例化我们剩余的单例bean：beanFactory.preInstantiateSingletons()
   - 不是抽象的&& 单例的 &&不是懒加载的，不是工厂bean
   - getBean-->doGetBean
+  - [九次处理器调用](https://www.processon.com/view/link/5f194e727d9c0835d38cc2cb).
     - 第1个bean后置处理器调用:InstantiationAwareBeanPostProcessors.postProcessBeforeInstantiation.事务以及切面解析都是通过导入了相关实现了
     我们的 BeanPostProcessor,InstantiationAwareBeanPostProcessor接口的类进行解析的
     - 实例化：创建bean实例化 使用合适的实例化策略来创建新的实例：工厂方法、构造函数自动注入、简单初始化 该方法很复杂也很重要
