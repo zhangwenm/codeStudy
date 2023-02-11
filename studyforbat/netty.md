@@ -4,7 +4,7 @@
 - netty对jdk自带nio进行了封装，将客户端断线重连、网络闪断、心跳处理。半包读写、网络拥塞和异常流的处理等
 - 高性能、吞吐量更高、延迟更低、减少资源消耗
 - 线程模型
-  ![](/studyforbat/pic/netty_thread.png)
+  - ![](./pic/netty_thread.png)
 - BossGroup负责接受客户端的连接
 - WorkGroup专门负责网络读写
 - 类型都是NioEventLoopGroup，包含多个事件循环线程（NioEventLoop）的事件循环线程组

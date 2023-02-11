@@ -10,15 +10,15 @@
 2.   SELECT * FROM t1, t2 WHERE t1.m1 > 1 AND t1.m1 = t2.m2 AND t2.n2 < 'd';  
 
 > - 执行过程  
-  ![关联查询!](/studyforbat/pic/join.png "表关联")  
+  - ![关联查询!](./pic/join.png "表关联")  
   
   - 步骤
 
-- ![关联查询步骤!](/studyforbat/pic/join_step.png "表关联查询步骤")
+  - ![关联查询步骤!](./pic/join_step.png "表关联查询步骤")
 
-- 如果有三个表关联的话，步骤2的结果集会作为驱动表，然后第三个表就会作为被驱动表。就是所谓的嵌套循环连接。  
+  - 如果有三个表关联的话，步骤2的结果集会作为驱动表，然后第三个表就会作为被驱动表。就是所谓的嵌套循环连接。  
 
-    驱动表只访问一次，而被驱动表可能被多次访问，这取决与驱动表返回的结果集条数。
+      驱动表只访问一次，而被驱动表可能被多次访问，这取决与驱动表返回的结果集条数。
 
 #### 内连接外链接的区别
 
@@ -55,4 +55,4 @@
 >
 > 查询列表中的列和符合过滤条件中的列才会放入join buffer中
 
-![join_buffer!](/studyforbat/pic/join_buffer.png "join_buffer")
+- ![join_buffer!](/studyforbat/pic/join_buffer.png "join_buffer")

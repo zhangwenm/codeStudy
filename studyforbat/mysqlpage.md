@@ -16,7 +16,7 @@
 创建时并没有这部分，每当我们插入一条数据时，会从Free Space申请一记录大小的空  
 间给User Record部分。如果Free Space完全被User Record取代后仍有新纪录插入的话，  
 则会创建新的页  
-![页结构!](/studyforbat/pic/page.png "页")  
+- ![页结构!](./pic/page.png "页")  
 
 #### 记录（数据）的组成  
 |名称   |大小(bit)   |描述   |
@@ -44,11 +44,11 @@
     顺序的下一条，而是主键大小比较的下一条。最小记录的下一条就是主键最小的用  
     户记录，主键值最大的记录的下一条为最大记录。这样我们的记录会按主键由小到  
     大形成单链表   
-    ![Next_Record!](/studyforbat/pic/next_record.png "Next_Record")   
+    - ![Next_Record!](./pic/next_record.png "Next_Record")   
     - 删除操作后  
-    ![delete!](/studyforbat/pic/del_record.png "删除")  
+    - ![delete!](./pic/del_record.png "删除")  
     - 重新插入删除的数据  
-    ![insert!](/studyforbat/pic/insert_record.png "插入")  
+    - ![insert!](./pic/insert_record.png "插入")  
 
 #### 页目录
 - 生成过程
@@ -57,7 +57,7 @@
     - 将每组最后一条记录的地址偏移量取出来，按顺序存储到靠近页尾部的地方，这个地方就是页目录
         - 最小记录的n_owned属性为1，自成一组。
         - 最大记录的该属性为5，如图  
-        ![dir!](/studyforbat/pic/page_dir.png "结构")  
+        - ![dir!](./pic/page_dir.png "结构")  
 - 规则
     - 最小记录自成一组
     - 最大记录组内1-8条数据

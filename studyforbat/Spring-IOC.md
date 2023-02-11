@@ -116,7 +116,7 @@
 类实现CommandLineRunner，重写run()方法
 #### 循环依赖
 - Spring中A依赖B，B依赖A在初始化的时候就形成了循环依赖    
--![循环依赖!](/studyforbat/pic/loop_dependncy.png "循环依赖")
+-![循环依赖!](./pic/loop_dependncy.png "循环依赖")
 - 解决办法：三级缓存，如果沒有循环依赖的话，用不到二、三级缓存。如果有循环依赖没有aop也会用到三级缓存
   - 一级缓存：存放实例化、属性填充（调用populate()方法时进行）、初始化完成的bea 
   - 二级缓存：存放实例化完成的Bean，还未进行属性填充和初始化（早期对象）  
@@ -129,7 +129,7 @@
 ，返回创建好的实例；2.如果getsingleton（）返回null，判断是否已经加入正在创建集合，没有的话加入，然后实例化、将早期实例封装成ObjectFactory  
 暴露在三级缓存中。3.属性填充：调用getsingleton（）获取B，过程同上，当填充到B里边的A时，则能获取到三级缓存中创建的早期实例A进行填充并放入二级缓存，最后移除二  
 级缓存中的B，将B填充到一级缓存，最后移除二、三级缓存中的B。4.递归结束将B填充到A的属性，如果二级缓存中存在A则将填充到一级缓存，最后移除二、三级缓存中的A，
-- ![循环依赖!](/studyforbat/pic/loop-create.png "循环依赖")
+- ![循环依赖!](./pic/loop-create.png "循环依赖")
 -   
 - 两级缓存的意义
   - 将实例化后的BEAN与初始化完成的BEAN分开存储，同时利用同步锁防止多线程时获取到未初始化完成的BEAN
@@ -193,7 +193,7 @@
 - 早期：请求 -> JSP -> JAVA BEAN -> 数据源 jsp同时担任处理器和视图展示
 - 演进：请求 -> serverlet（C）  -> JAVA BEAN（M） -> 数据源，然后处理器将数据返  
 给jsp（V）。视图展示和处理器和视图展示
-![](/studyforbat/pic/01-Springmvc执行流程.png)
+- ![](./pic/01-Springmvc执行流程.png)
 - 拦截器：springmvc容器启动的时候加载进去的
 - spring ioc容器扫描的时候不回加载mvc的bean，mvc的容器是会加载spring的Bean
 

@@ -171,14 +171,14 @@
       - 尽可能与上次的分配保持一致
       - 当冲突时，第一个目标优先于第二个目标
 - producer发布消息
-  ![](/studyforbat/pic/kafka_rebalance.png)
+- ![](./pic/kafka_rebalance.png)
   - push方式推给broker，apeend到partion中，顺序写磁盘
   - partition选择方式
     - 指定partition
     - 未指定partition但制定了key，通过对key的value hash选择partition
     - 都未指定，轮询
 - 消息写入流程 
-  ![](/studyforbat/pic/kafka_pro duce.png)
+- ![](./pic/kafka_pro duce.png)
   - producer找到partition的leader发送消息
   - leader写入本地log
   - follower从leader拉取消息写入本地log发送ack
@@ -188,7 +188,7 @@
     - partion的ISR中最小的LEO作为HW,consumer最多消费到HW位置，每个副本都有HW，有其自身维护。新写入leader的  
     消息不能被消费者消费，需要等到ISR中所有副本都更新完HW并且自己也更新过HW后才能被消费。对于来自内部broker的读请求  
     没有HW的限制
-      ![](/studyforbat/pic/kafka_hw.png)
+- ![](./pic/kafka_hw.png)
 - 日志分段存储
   - 一个分区的消息存储在topic+分区号文件夹下，消息在分区内是分段存储的，每个段的消息存储在不同的log里，一个段位  
   的log文件最大为1G，方便加载到内存

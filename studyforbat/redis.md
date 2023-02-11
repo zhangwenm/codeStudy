@@ -74,7 +74,7 @@
 - 单节点内存配置一般小于10g,有局限
 - 主从架构
 - master 默认每隔 10 秒发送一次 heartbeat，slave node 每隔 1 秒发送一个 heartbeat。
-![](./pic/master-slave.png)  
+- ![](./pic/master-slave.png)  
 - 原理
   - 给master配置一个slave，无论是否第一次连上slave，都会向master发送一个PSYNC命令给master请求复制数据
   - master收到命令后在后台进行数据持久化通过bgsave生成rdb文件，持久化期间master会继续接收客户端的请求，并将这些  
@@ -83,15 +83,15 @@
   命令发给slave
   - 当由于某些原因断开连接时，slave能自动重连master。如果master收到多个slave并发连接请求，只会进行一次持久化而不是一次  
   一个连接一次。最后把数据发给多个并发连接的slave
-    ![](./pic/psync.png)  
+    - ![](./pic/psync.png)  
 - 断点续传2.8版本开始
   - master会在内存中创建一个复制数据用的缓存队列，缓存最近一段时间的数据，master和它所有的slave都维护了复制数据的offset和master  
   的进程id，因此断开重连时会从记录的数据下标开始。如果master进程id没了或者节点数据下标太久已经不再master的缓存队列了，那么会进行一  
   次全量复制
-    ![](./pic/续传.png)  
+    - ![](./pic/续传.png)  
 - 为了防止从节点过多，缓解主从复制风暴（多从节点从主节点复制数据，造成主节点压力过大），做如下架构  
 - slave 不会过期 key，只会等待 master 过期 key。如果 master 过期了一个 key，或者通过 LRU 淘汰了一个 key，那么会模拟一条 del 命令发送给 slave。
-  ![](./pic/multilevel.png)  
+  - ![](./pic/multilevel.png)  
 - Redis 的高可用架构，叫做 failover 故障转移，也可以叫做主备切换。通过哨兵实现
 - #### 哨兵
 - 集群监控：负责监控 Redis master 和 slave 进程是否正常工作。
@@ -110,7 +110,7 @@
 
 
 - 哨兵架构
-  ![](./pic/sentinel-slave.png)
+  - ![](./pic/sentinel-slave.png)
 - 哨兵节点是特殊的redis服务，不提供读写功能，主要用来监控redis实例节点（Raft算法选举）
 - 一般情况下sentinel以每10s一次的频率向被监视的主服务器和从服务器发送INFO命令获取信息，当主服务器处于下线状态或者正在对主服务器进行故障转移  
 时，改为每秒一次
@@ -180,44 +180,44 @@
     - 兼容C语言函数库（自动添加\0）
     - 惰性空间释放：缩短后并不会立即回收，而是将长度先加到free属性上
       - 保存的是整数值，并且可以用long类型来表示，底层使用int编码
-        ![](./pic/encoding_int.png)
+        - ![](./pic/encoding_int.png)
       - 保存的字符串，长度大于32，使用raw编码
-        ![](./pic/encoding_raw.png)
+        - ![](./pic/encoding_raw.png)
         - redisobject和sdshdr分开存储，需要两次内存分配
       - 字符串小于等于32，使用embstr编码
-        ![](./pic/encoding_embstr.png)
+        - ![](./pic/encoding_embstr.png)
         - redisobject和sdshdr在一块连续内存
         - redis没有为embstr提供修改程序，需要先转换为raw字符串再进行修改
   - 列表对象
-    ![](./pic/list_ziplist.png)
+    - ![](./pic/list_ziplist.png)
     - 压缩表 每个节点记录前一节点的长度
       - 保存的字符串，且元素长度都小于64
       - 元素数量小于512
-    ![](./pic/list_linklist.png)
+    - ![](./pic/list_linklist.png)
     - 双端链表
       - 不能满足以上条件的都需要使用双端链表
   - 哈希对象
-    ![](./pic/hash_ziplist.png)
+    - ![](./pic/hash_ziplist.png)
     - 压缩表
       - 所有键值对的键和值的字符串长度都小于64
       - 键值对数量小于512
-    ![](./pic/hash_dt.png)
+    - ![](./pic/hash_dt.png)
     - 字典
       - 不满足以上条件
       - ![img.png](img.png)
   - 集合对象
-  ![](./pic/hash_dt.png)
+  - ![](./pic/hash_dt.png)
     - intset
       - 集合对象都是整数值
       - 元素数量不超过512
     - hashtable
   - 有序集合对象
-  ![](./pic/zset_ziplist.png) 
-  ![](./pic/zset_ele1.png)
+  - ![](./pic/zset_ziplist.png) 
+  - ![](./pic/zset_ele1.png)
     - 压缩列表
       - 所有元素成员的长度都小于64字节
       - 元素数量少于128
-    ![](./pic/skiplist.png)
+    - ![](./pic/skiplist.png)
     -字典和跳跃表 
       - 以有序的方式在层次化的链表中保存元素，效率和平衡树媲美，但实现简单直观
       - 跳跃表是一种随机化数据结构，查找、添加、删除操作都可以在对数期望时间下完成。

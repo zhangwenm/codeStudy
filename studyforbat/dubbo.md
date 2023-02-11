@@ -1,6 +1,6 @@
 ## dubbo
 - 刚开始设计的定位是RPC 框架，后期随着迭代，涉及到服务治理、服务监控、服务网关等，逐渐发展为服务管理框架
-- ![](/studyforbat/pic/dubbo.png)
+- ![](./pic/dubbo.png)
 #### duboo的调用原理
 - 服务提供者的导出
   - 服务导出的入口为ServiceBean的export()方法，在spring启动后通过ContextRefreshEvent()方法触发export的执行
@@ -115,7 +115,7 @@
 - 首先，如果当前服务支持参数回调，意思就是：对于某个服务接口中的某个方法，如果想支持消费者在调用这个方法时能  
 设置回调逻辑，那么该方法就需要提供一个入参用来表示回调逻辑。
 - 因为Dubbo协议是基于长连接的，所以消费端在两次调用同一个方法时想指定不同的回调逻辑，那么就需要在调用时在指定一定key进行区分。
-- ![](/studyforbat/pic/dubbocallback.png)
+- ![](./pic/dubbocallback.png)
 #### 异步调用
 - 主要要理解CompletableFuture，如果不理解，就直接把它理解为Future
 #### 泛化调用

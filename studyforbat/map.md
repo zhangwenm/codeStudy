@@ -15,7 +15,7 @@
       - 如果get一个在这个链表中不存在的key时，就会出现死循环了。
 - concurrenthashMap
   - 1.7
-  -![](/studyforbat/pic/curmap.png) 
+  -![](./pic/curmap.png) 
   - ConcurrentHashMap提出了分段锁的解决方案。  
     - 默认16个锁，扩容是针对segment扩容的，所以锁得数量不变
     - ConcurrentHashMap中维护着一个Segment数组，每个Segment可以看做是一个HashMap。  
@@ -33,7 +33,7 @@
         ConcurrentHashMap的扩容只针对每个segment中的HashEntry数组进行扩容。  
         由上述put的源码可知，ConcurrentHashMap在rehash的时候是有锁的，所以在rehash的过程中，其他线程无法对segment的hash表做操作，这就保证了线程安全。  
   - 1.8
-  - ![](/studyforbat/pic/1.8curmap.png)
+  - ![](./pic/1.8curmap.png)
   - JDK8与JDK7的实现由较大的不同，JDK8中不在使用Segment的概念，他更像HashMap的实现方式(数组+链表+红黑树)。
   - ConcurrentHashMap是用table这个成员变量来持有hash表的，table的初始化采用了延迟初始化策略，他会在第一次执行put的时候初始化table。
   - 成员变量sizeCtl在ConcurrentHashMap中的其中一个作用相当于HashMap中的threshold，当hash表中元素个数超过sizeCtl时，触发扩容；  

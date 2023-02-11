@@ -43,18 +43,18 @@
   - redis数据可能丢失，性能较好
 - 共享锁(共享锁)
 #### 选举 
-![](/studyforbat/pic/zk_sel.png)
+- ![](./pic/zk_sel.png)
 - myid zxid 选zxid大的，zxid相同比较myid。节点数已配置文件里配置的为准
 
 - zk的选举底层可以分为选举应用层和消息传输层，应用层有自己的队列收、发选票，传输层也设计了自己的队列，并按发送的机器分了队列，避免每台机器  
 发送消息时相互影响，比如某台机器如果出问题发送不成功不会影响对正常机器的发送  
-![](/studyforbat/pic/zk_queue.png "zk队列")  
+- ![](./pic/zk_queue.png "zk队列")  
 #### ZAB协议
 - zk原子广播协议
 - zk为分布式服务提供高效且可靠的分布式协调服务。在解决分布式一致性方面，zk没有使用paxos，而是采用了ZAB协议，paxos的一种简化版算法
 - 支持崩溃恢复和原子广播
 - zk实现了一种主备架构来保持集群各副本之间数据的一致性
-  ![](/studyforbat/pic/zk_broadcast.png "zk广播")  
+- ![](./pic/zk_broadcast.png "zk广播")  
 - 消息广播
   - 类似二阶段提交的原子广播协议。
   - 客户端发送的写请求全部交由leader处理，leader将请求封装成proposal，将其发送给所有的follower，由半数以上的follower反馈成功则进行commit  
@@ -63,7 +63,7 @@
   - leader和follower之间还有一个消息队列，来解耦，接触同步阻塞
   - 为保证集群所有进程都能够有序的顺序执行，只能是leader来处理写请求，follower接到写请求会转发给leader。follower只处理读请求
   - ZAB协议规定，如果一个事务在一台机器上执行成功，那么应该在所有机器上都执行成功，哪怕机器出现故障
-    ![](/studyforbat/pic/zk_broadcast_process.png "zk广播流程") 
+  - ![](./pic/zk_broadcast_process.png "zk广播流程") 
 #### 崩溃恢复
 - leader复制数据给所有follower，还没来得及收到ack，挂掉
 - leader收到ack发送部分commit之后挂掉
@@ -78,4 +78,4 @@
   计数器+1
   - 高32位则代表了leader上本地最大事务proposal的epoch值（leader选举周期），当一轮选举结束后，会对这个值+1，事务id从0开始 
   - 高32位代表了leader的唯一性，低32位代表每代事务的唯一性
-    ![](/studyforbat/pic/zk_zxid.png "zxid") 
+    - ![](./pic/zk_zxid.png "zxid") 

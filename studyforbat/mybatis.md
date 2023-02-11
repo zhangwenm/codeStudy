@@ -18,7 +18,7 @@
     - 然后循环bena定义将类型修改为MapperFactoryBean
     - 设置ConstructorArgumentValues 会通过构造器初始化对象，会在实例化MapperFactoryBean时将我们的mapper的class传进去
     - 最终调用getBean实例化时会根据这个传进来的class生成代理对象，注册到容器中，完成mapper接口的注入
-  ![](/studyforbat/pic/mybatis架构.png)
+  - ![](./pic/mybatis架构.png)
 - 将全局配置文件解析成Configration对象（只会加载一次，重复加载抛异常），解析全局配置文件的内容（property、setting、插件、  
 类型处理器（会维护默认的）、mapper（指定包、指定路径等方式进行配置）等）。
   - mapper解析：namespace、缓存、resultmap、parameter、sql片段等，sql片段封装到mappersatatement的sqlsorce。二级缓存由  
@@ -41,18 +41,5 @@
 - sql被解析成一个个sqlnode，然后利用责任链的模式调用，将每一个sqlnode解析方式追加到sql变量中  
 ，执行的时候这些解析方式会将sqlnode结成能执行的sql语句
 - 二级缓存：责任链+装饰器模式。由多个缓存实现类通过装饰器模式装饰组成，通过责任链调用方式实现（装饰器：动态扩展）
-
-
-#### mybatis整合spring
-- spring bean的生产过程
-  - 扫描指定报下class文件
-  - 根据class文件生成BeanDefinition
-  - 利用BeanFactory后置处理器修改Bean定义
-  - 根据Bean定义生成Bean实例
-  - 将生成的Bean实例放入容器
-- spring整合mybatis
-   - 定义一个MapperFactoryBean，用来将mybatis的代理对象生成一个Bean
-   - 定义一个MapperSannerRegister，用来生成不同Mapper对象的MapperFactoryBean
-   - 定义一个扫描注解MapperScan，扫描指定路径法下的Mapper文件，用来在启动时将mapper的代理对象注入到容器
 
 
