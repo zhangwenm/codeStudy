@@ -1,4 +1,6 @@
 ## hashmap
+- [map](https://tech.meituan.com/2016/06/24/java-hashmap.html).
+- [concurrentmap](https://juejin.cn/post/6844903813892014087).
 - hashmap
   - put
     - 先看链表长度是否要转红黑树，先转在插入
@@ -54,4 +56,4 @@
     - 最后，将所有键值对重新rehash到新表(nextTable)中后，用nextTable将table替换。这就避免了HashMap中get和扩容并发时，可能get到null的问题。
     - 在整个过程中，共享变量的存储和读取全部通过volatile或CAS的方式，保证了线程安全。
 - [map](https://juejin.cn/post/6844903796225605640).
-- [concurrentmap](https://juejin.cn/post/6844903813892014087).
+

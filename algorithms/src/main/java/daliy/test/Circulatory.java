@@ -5,6 +5,7 @@ import org.apache.logging.log4j.core.util.Assert;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -14,7 +15,6 @@ import java.util.List;
  */
 public class Circulatory {
     public static void main(String[] args) {
-
         String str = "";
         Integer num=0;
         addNumber(num++);

@@ -155,6 +155,7 @@
   - 动态给topic增加了分区
   - 消费者组订阅了更多的分区
 - rebalance过程
+- [coordinator](https://mp.weixin.qq.com/s/dOiNT0a_dRytwatzdrJNCg).
   - consumergroup会选择一个broker作为组协调器，来监控消费组成员的心跳以及判断是否宕机，然后开启rebalance，消费组成员启动的时候  
   会向集群的某个节点发送findCondinatorRequest请求来找到组协调器并建立网络连接
     - consumer offset提交分区：consumerGroupId+topic+分区号，该分区的主副本所在的broker即为组协调器
