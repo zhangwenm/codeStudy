@@ -15,13 +15,13 @@ buffer pool中默认的缓存页大小和磁盘中默认的页大小是一样的
 空间编号、页号、缓存页在bufferpool中的地址、链表节点信息以及其他控制信息。这部分数据占用内存空间就是控制块。控制信息和页是  
 一一对应的，他们都被放到bufferpool中。其中控制块被放到bufferpool的前边，缓存页被放到后边。如果剩余的空间不足以存放一对控制块  
 和内存页，则会在控制块存放区域和缓存页存放区中间形成碎片。如图    
-![bufferpool!](https://github.com/zhangwenm/codeStudy/blob/master/studyforbat/pic/bufferpool.png "bufferpool")    
+- ![bufferpool](https://github.com/zhangwenm/codeStudy/blob/master/studyforbat/pic/bufferpool.png)    
 每个控制块约占缓存页大小的5%，我们设置的innodb_buffer_pool_size并不包含这块区域的内存，因此innodb再向操作系统申请连续的内存  
 空间时，这块内存空间一般会比innodb_buffer_pool_size大5%。  
 
 #### free链表
 当从磁盘读取数据页时，为了能将数据放到尚未使用缓存页中，Innodb将所有空闲缓存页对应的控制块作为一个节点放到一个双向链表中。如图   
-![freelistnode!](https://github.com/zhangwenm/codeStudy/blob/master/studyforbat/pic/freelistnode.png "free链表")  
+- ![freelistnode!](https://github.com/zhangwenm/codeStudy/blob/master/studyforbat/pic/freelistnode.png )  
 基节点占用的空间并不在申请的那块连续内存中，而是单独申请的一块40字节大小的空间。这样每当从磁盘加载页到bufferpool时，就会从free链表  
 中取出一个控制块并填充上表空间、页编号等信息，然后从链表中移除。  
 
