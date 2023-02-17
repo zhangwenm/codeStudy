@@ -15,13 +15,13 @@ buffer pool中默认的缓存页大小和磁盘中默认的页大小是一样的
 空间编号、页号、缓存页在bufferpool中的地址、链表节点信息以及其他控制信息。这部分数据占用内存空间就是控制块。控制信息和页是  
 一一对应的，他们都被放到bufferpool中。其中控制块被放到bufferpool的前边，缓存页被放到后边。如果剩余的空间不足以存放一对控制块  
 和内存页，则会在控制块存放区域和缓存页存放区中间形成碎片。如图    
-![bufferpool!](./pic/bufferpool.png "bufferpool")    
+![bufferpool!](https://github.com/zhangwenm/codeStudy/blob/master/studyforbat/pic/bufferpool.png "bufferpool")    
 每个控制块约占缓存页大小的5%，我们设置的innodb_buffer_pool_size并不包含这块区域的内存，因此innodb再向操作系统申请连续的内存  
 空间时，这块内存空间一般会比innodb_buffer_pool_size大5%。  
 
 #### free链表
 当从磁盘读取数据页时，为了能将数据放到尚未使用缓存页中，Innodb将所有空闲缓存页对应的控制块作为一个节点放到一个双向链表中。如图   
-![freelistnode!](./pic/freelistnode.png "free链表")  
+![freelistnode!](https://github.com/zhangwenm/codeStudy/blob/master/studyforbat/pic/freelistnode.png "free链表")  
 基节点占用的空间并不在申请的那块连续内存中，而是单独申请的一块40字节大小的空间。这样每当从磁盘加载页到bufferpool时，就会从free链表  
 中取出一个控制块并填充上表空间、页编号等信息，然后从链表中移除。  
 
@@ -32,13 +32,13 @@ Innodb以表空间号+页编号作为key，缓存页作为value创建了一张�
 #### flush链表  
 当我们修改了缓存页的数据后，缓存页中的数据就和磁盘页中的数据不一致，这些页就是脏页。这些修改过的缓存页并不会立即被刷新到磁盘，而是在  
 某个时间点被刷到磁盘。为了管理这些脏页，Innodb创建了flush链表，结构和free链表相基本相同。   
-- ![flushlistnode!](./pic/flushlistnode.png "flsuh链表")  
+- ![flushlistnode!](https://github.com/zhangwenm/codeStudy/blob/master/studyforbat/pic/flushlistnode.png "flsuh链表")  
 
 ##### LRU管理
 bufferpool的内存空间是有限的，为了合理的释放缓存页，Innodb维护了一个已使用的控制块的LRU链表。并将还链表分为两部分  
 - 存放热数据的young区域  
 - 存放冷数据的old区域，默认情况下占总lru链表的37%    
-- ![LRU!](./pic/lrulistnode.png "LRU链表")  
+- ![LRU!](https://github.com/zhangwenm/codeStudy/blob/master/studyforbat/pic/lrulistnode.png "LRU链表")  
 这样做的目的：  
 - 防止预读时将可能不使用数据放到缓存页，从而影响热数据的读取。第一次被加载到缓存页的数据的控制块将会放到old区域的头部，如果后续不使用的  
 话就会从old区域移除。  
@@ -60,12 +60,12 @@ LRU尾部的一个脏页同步刷新到磁盘。
 #### 多bufferpool实例  
 为了降低多线程并发高的情况下，单实例的压力，所以当单个buffer pool特别大的时候可以拆分成若干个小的bufferpool。bufferpool大小小于1G时，即  
 使通过参数设置多实例，设置也不会生效，Innodb会自动改为1。Innodb鼓励在大于或等于1G的时候进行拆分。结构如图  
-- ![multipool!](./pic/mutipool.png "多实例")   
+- ![multipool!](https://github.com/zhangwenm/codeStudy/blob/master/studyforbat/pic/mutipool.png "多实例")   
 
 ####  innodb_buffer_pool_chunk_size  
 每次调整bufferpool的时候都需要重新申请一块连续的内存，然后将旧的buffer pool的数据拷贝过去，这样极其耗费性能。为了解决这个问题，Innodb将  
 bufferpool以chunk为单位向系统申请空间，也就是说chunk似乎buffferpool的基本组成单位。 
-- ![chunk!](./pic/chunk.png "chunk")   
+- ![chunk!](https://github.com/zhangwenm/codeStudy/blob/master/studyforbat/pic/chunk.png "chunk")   
 chunk的大小只能在服务器启动的时候进行设置，不允许再运行时进行修改。chunksize的大小不包含控制块的那部分空间，所以申请空间的时候一般会多申请  
 5%，用于存储控制块。  
 

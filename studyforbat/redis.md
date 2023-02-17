@@ -204,7 +204,7 @@
     - ![](./pic/hash_dt.png)
     - 字典
       - 不满足以上条件
-      - ![img.png](img.png)
+      - ![img.png](https://github.com/zhangwenm/codeStudy/blob/master/studyforbat/img.png)
   - 集合对象
   - ![](./pic/hash_dt.png)
     - intset
@@ -227,7 +227,7 @@
       - 而skiplist的操作显然更加局部性一些，需要盯住的节点更少，因此在这样的情况下性能好一些
       - 字典保存元素和分值的映射
       - 跳跃表按分值大小保存了集合元素
-      - ![img_1.png](img_1.png)
+      - ![img_1.png](https://github.com/zhangwenm/codeStudy/blob/master/studyforbat/img_1.png)
 - 默认16个Db hash桶长度默认4 2倍扩容
 - key过多时会引发rehash
 - 先访问0，存在将整个hash桶搬到1，不存在访问1.

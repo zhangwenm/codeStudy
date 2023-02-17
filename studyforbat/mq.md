@@ -1,4 +1,4 @@
-## MQ
+## MQ 
 
 #### 使用场景
 - 应用解耦：提高系统容错性和可维护性
@@ -117,17 +117,38 @@
     - partition分区，每个分区对应一个commitlog，message按顺序存储在commitlog中，有一个唯一标识（partition内）
     ，即offset
   - 消费者offset由消费者维护
+  - Kafka中的Producer和Consumer采用的是Push-and-Pull模式，即Producer向Broker Push消息，Consumer从Broker Pull消息
+    - Pull模式的一个好处是consumer可以自主决定是否批量的从broker拉取数据。
+    - Pull有个缺点是，如果broker没有可供消费的消息，将导致consumer不断在循环中轮询，直到新消息到达。
   - 副本：主副本，从副本，收发都有主副本负责
   - ISR：存活并且和主副本保持通信的节点
   - 一个分区只能被同一消费者组的一个消费者消费，但是可以被别的组消费者同时消费
-  - producer发送的时候可以指定分区，也可以不指定。不指定会用hash算法取模指定一个分区
+  - producer发送的时候分区策略，可以实现org.apache.kafka.clients.producer.Partitioner接口自定义分区策略
+    - 新版本默认轮询策略
+    - 老版本随即策略
+    - 按消息键保序策略
+  - 消费者消费策略
+    - 默认，也叫轮循，说的是对于同一组消费者来说，使用轮训分配的方式，决定消费者消费的分区
+    - Range：对一个消费者组来说决定消费方式是以分区总数除以消费者总数来决定，一般如果不能整除，往往是从头开始将剩余的分区分配开
+    - Sticky：保留现有消费者原来的消费策略，将退出的消费者所消费的分区平均分配给现有消费者，新增消费者同理，同其他现存消费者的消费策略中分离
   - 发送方式
     - 同步
     - 异步，有回调
-- 机械硬盘顺序读写堪比ssd随机读写，千兆网卡需要除以8（？）
-- kafka不会修改也不会删除文件，保证了顺序读写
-- 批量发送，压缩
-- 零拷贝 mmap+sendfile
+- 高性能
+  - 机械硬盘顺序读写堪比ssd随机读写，千兆网卡需要除以8（？）
+  - 传统的 IO 流程，需要先把数据拷贝到内核缓冲区，再从内核缓冲拷贝到用户空间，应用程序处理完成以后，再拷贝回内核缓冲区
+  - 零拷贝 为了减少不必要的拷贝，Kafka 依赖 Linux 内核提供的 Sendfile 系统调用，在 Sendfile 方法中，数据在内核缓  
+  冲区完成输入和输出，不需要拷贝到用户空间处理，这也就避免了重复的数据拷贝。Kafka 把所有的消息都存放在单独的文件里，在消  
+  息投递时直接通过 Sendfile 方法发送文件，减少了上下文切换，因此大大提高了性能
+  - Producer生产的数据持久化到broker，采用mmap文件映射，实现顺序的快速写入
+    - Kafka 使用 Memory Mapped Files 完成内存映射，Memory Mapped Files 对文件的操作不是 write/read，而是直接  
+    对内存地址的操作，如果是调用文件的 read 操作，则把数据先读取到内核空间中，然后再复制到用户空间，但 MMAP可以将文件  
+    直接映射到用户态的内存空间，省去了用户空间到内核空间复制的开销
+  - Customer从broker读取数据，采用sendfile，将磁盘文件读到OS内核缓冲区后，直接转到socket buffer进行网络发送。
+  - kafka不会修改也不会删除文件，保证了顺序读写
+  - 批量发送读取，数据压缩
+  - 分区机制
+    - kafka中的topic中的内容可以被分为多partition存在，每个partition又分为多个段segment，所以每次操作都是针对一小部分做操作，很轻便，并且增加并行操作的能力
 - kafka集群中有一个或者多个borker，其中一个broker会被选举为controller
 - cotroller作用
   - 当某个分区主副本出现故障时，由它负责选举新的主副本
@@ -142,9 +163,50 @@
     - 因为第一个是被最先放进ISR的，理论上同步的数据最新
     - 如果设置了ISR副本都挂以后可以从外部选leader，虽然可以提高可用性，但是选出的主副本可能同步的数据不是最新
     - 进入ISR的条件
-      - 副本节点不能产生分区，要保持和zookeeper的会话以及跟主副本的网络连通
-      - 副本能复制leader副本上的写操作，并且不能落后太多。如果超过设置的时间没有和主副本同步过一次的话，会被移出
+      - 副本能复制leader副本上的写操作，并且不能落后太多。如果连续超过设置的同步时间（默认值是10秒）没有和主副本同步过一次的话，会被移出
       ISR
+      - Follower副本唯一的工作就是不断地从Leader副本拉取消息，然后写入到自己的提交日志中。若该副本后面慢慢地追上了Leader的进度，那么它是能够重新被加回ISR的
+- 生产端消息的幂等
+  - producer幂等
+    - 通过在生产端添加开启幂等的配置
+    - Producer 每次启动后，会向 Broker 申请一个全局唯一的 pid。（重启后 pid 会变化，这也是弊端之一）
+    - 针对每个 <Topic, Partition> 都对应一个从0开始单调递增的 Sequence，同时 Broker端会缓存这个 seq num
+    - 拿 <pid, seq num> 去 Broker 里对应的队列ProducerStateEntry.Queue（默认队列长度为 5）查询是否存在
+      - 如果 nextSeq == lastSeq + 1，即 服务端seq + 1 == 生产传入seq，则接收。
+      - 如果 nextSeq == 0 && lastSeq == Int.MaxValue，即刚初始化，也接收。
+      - 反之，要么重复，要么丢消息，均拒绝。
+    - 解决了重复和乱序
+  - 那什么时候该使用幂等：
+    - 如果已经使用 acks=all，使用幂等也可以。
+    - 如果已经使用 acks=0 或者 acks=1，说明你的系统追求高性能，对数据一致性要求不高。不要使用幂等。
+  - kafka事务，解决producer幂等的弊端：单会话且单分区幂等。
+    - 写入之前开启事务，写入异常时终止事务
+    - 消费端要进行配置只会读取事务型 Producer 成功提交事务写入的消息。当然了，它也能看到非事务型 Producer 写入的所有消息。
+  - 消费幂等
+    - 使用消息表，消费的时候开启事务将消息id存入消息表，再进行业务处理
+    - 当有重复时消息表插入异常触发事务回滚
+- 顺序消费
+  - kafka的topic是无序的，但是一个topic包含多个partition，每个partition内部是有序的。
+  - 可以设置topic，有且只有一个partition
+  - 要保证生产者写消息时，按照一定的规则写到同一个partition，不同的消费者读不同的partition的消息，就能保证生产和消费者消息的顺序。
+  - 消费者内部根据线程数量创建等量的内存队列，对于需要顺序的一系列业务数据，根据key或者业务数据，放到同一个内存队列中，然后线程从对应的内存队列中取出并操作
+- 消息堆积
+  - 减小消息体的大小，减少io耗时
+  - 消息体包含关键字段，其他信息通过接口获取
+  - 多线程处理消息对应的业务
+- 分区数据倾斜
+  - 采用更合理的字段作为路由字段
+- 消息丢失
+  - producer：
+    - 用带回调通知函数的方法进行发送消息，即 Producer.send(msg, callback), 这样一旦发现发送失败， 就可以做针对性处理。
+    - ACK 确认机制，-1/all 表示有多少个副本 Broker 全部收到消息，才认为是消息提交成功的标识。
+    - （分区副本的个数）replication.factor >= 2   （消息至少要被写入成功到 ISR 多少个副本才算"已提交"）min.insync.replicas > 1
+    - 重试次数 retries：
+    - 重试间隔时间 retry.backoff.ms：
+  - broker
+    - unclean.leader.election.enable：有哪些 Follower 可以有资格被选举为 Leader
+  - consummer
+    - 拉取数据、业务逻辑处理、提交消费 Offset 位移信息。
 - 消费者消费消息的offset机制
   - consumer会定期将自己消费的offset提交给内部的topic：_cosumer_offset,提交的时候key为consumerGroupId+topic+分区号  
   ，value就是当前offset。kafka会定期清理_consumer_offsets里的offset，保留最新的那条
@@ -154,6 +216,8 @@
   - 消费者组消费者变化
   - 动态给topic增加了分区
   - 消费者组订阅了更多的分区
+- 消费者
+  - Consumer 在每次调用 Poll() 消费数据的时候，顺带一个 timeout 参数，当返回空数据的时候，会在 Long Polling 中进行阻塞，等待 timeout 再去消费，直到数据到达。
 - rebalance过程
 - [coordinator](https://mp.weixin.qq.com/s/dOiNT0a_dRytwatzdrJNCg).
   - consumergroup会选择一个broker作为组协调器，来监控消费组成员的心跳以及判断是否宕机，然后开启rebalance，消费组成员启动的时候  
@@ -163,8 +227,14 @@
   - 消费组协调器制定好分区方案后发送给组协调器，心跳检测时由组协调器发送给各个消费者，他们会根据指定分区的leader broker进行网络连接及消息消费
 - rebalance策略
 - 三种策略
-  - range 默认
+  - range 默认  
+  RangeAssignor 是 Kafka 默认的分区分配算法，它是按照 Topic 的维度进行分配的，对于每个 Topic，首先对 Partition 按照分区ID进行排序，
+ 然后对订阅这个 Topic 的 Consumer Group 的 Consumer 再进行排序，之后尽量均衡的按照范围区段将分区分配给 Consumer。此时可能会造成先分配分区的  
+  Consumer 进程的任务过重（分区数无法被消费者数量整除）。
   - round_robin
+    - RoundRobinAssignor 的分区分配策略是将 Consumer Group 内订阅的所有 Topic 的 Partition 及所有 Consumer 进行排序后按照顺序尽量均衡的  
+    一个一个进行分配。如果 Consumer Group 内，每个 Consumer 订阅都订阅了相同的Topic，那么分配结果是均衡的。如果订阅 Topic 是不同的，  
+    那么分配结果是不保证“尽量均衡”的，因为某些 Consumer 可能不参与一些 Topic 的分配。
   - sticky
     - 初始分配与round_robin类似
     - rebalance时
