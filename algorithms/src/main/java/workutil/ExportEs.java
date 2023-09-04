@@ -68,7 +68,7 @@ public class ExportEs {
 //                MediaType mediaType = MediaType.parse("application/json");
 //                RequestBody body = RequestBody.create(mediaType, updatedJson);
 //                Request request = new Request.Builder()
-//                        .url("https://esnew.yunjichina.com.cn/device.info.*/doc/_search")
+//                        .url("https://baidu.com.cn/device.info.*/doc/_search")
 //                        .method("POST", body)
 //                        .addHeader("Content-Type", "application/json")
 //                        .addHeader("Authorization", "Basic YWRtaW46eXVuMTdqaTE4")
