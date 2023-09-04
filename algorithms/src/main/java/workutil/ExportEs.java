@@ -71,7 +71,7 @@ public class ExportEs {
 //                        .url("https://baidu.com.cn/device.info.*/doc/_search")
 //                        .method("POST", body)
 //                        .addHeader("Content-Type", "application/json")
-//                        .addHeader("Authorization", "Basic YWRtaW46eXVuMTdqaTE4")
+//                        .addHeader("Authorization", "Basic ")
 //                        .build();
 //                Response response = client.newCall(request).execute();
 //
