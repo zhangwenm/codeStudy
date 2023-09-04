@@ -15,12 +15,13 @@ import java.util.List;
  */
 public class Circulatory {
     public static void main(String[] args) {
-        String str = "";
+        String str = null;
         Integer num=0;
         addNumber(num++);
         System.out.println("num:"+num);
         BigDecimal b1 = new BigDecimal(10.0);
-
+        String indexName = String.format("%sdevice.info.yunfan/doc", "123");
+        System.out.println(indexName);
         Assert.requireNonEmpty(str,"str is empty");
         System.out.println("%:"+4/3);
     }
