@@ -23,8 +23,20 @@ public class Device {
     @ColumnWidth(20)
     @ExcelProperty("电话id")
     private String productId;
-
     @ColumnWidth(20)
-    @ExcelProperty("流量")
-    private Double use;
+    @ExcelProperty("ip")
+    private String ip;
+    @ColumnWidth(20)
+    @ExcelProperty("地点")
+    private String place;
+    @ColumnWidth(20)
+    @ExcelProperty("4G")
+    private String netflag;
+    @ColumnWidth(20)
+    @ExcelProperty("固件")
+    private String mirror;
+    @ColumnWidth(20)
+    @ExcelProperty("心跳")
+    private String heart;
+
 }
